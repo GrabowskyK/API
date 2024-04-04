@@ -1,0 +1,6 @@
+@OnlyCreateDatabase_HostAddress = http://localhost:5162
+
+GET {{OnlyCreateDatabase_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
