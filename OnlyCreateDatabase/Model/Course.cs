@@ -11,6 +11,7 @@
         public string createdAt { get; set; } = DateTime.Now.ToString();
         public string updatedAt { get; set; } = DateTime.Now.ToString();
 
+
         public Course(string name, int userId, string? description)
         {
             Name = name;

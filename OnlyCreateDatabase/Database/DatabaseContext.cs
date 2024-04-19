@@ -21,6 +21,18 @@ namespace OnlyCreateDatabase.Database
                 .HasForeignKey(e => e.UserId) // Klucz obcy w Enrollment
                 .OnDelete(DeleteBehavior.Restrict); // Usuwanie kaskadowe
 
+            modelBuilder.Entity<Enrollment>()
+                .HasOne(e => e.User)
+                .WithMany(u => u.Enrollments)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false); // Wartość null jest dozwolona dla klucza obcego UserId
+
+            modelBuilder.Entity<Enrollment>()
+                .HasOne(e => e.Course)
+                .WithMany(u => u.Enrollments)// Brak nawigacji w drugą stronę, zakładając, że Course nie zawiera kolekcji Enrollment
+                .HasForeignKey(e => e.CourseId)
+                .IsRequired(false); // Wartość null jest dozwolona dla klucza obcego CourseId
+
             modelBuilder.Entity<Grade>()
                .HasOne(g => g.User)
                .WithMany()

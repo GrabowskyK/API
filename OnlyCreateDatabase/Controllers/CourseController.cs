@@ -27,28 +27,13 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(model);
         }
 
-        [HttpGet("AllCourse/{id}")]
-        public IActionResult TeachersCourse(int id) //Kursy nauczyciela jakie posiada
+        [HttpGet("AllCourse/{userId}")]
+        public IActionResult TeachersCourse([FromRoute] int userId) //Kursy nauczyciela jakie posiada
         {
-            var model = courseService.AllCourseByUserId(id);
+            var model = courseService.AllCourseByUserId(userId);
             return Ok(model);
         }
 
-        [HttpDelete("DeleteCoruse/{id}")]
-        public IActionResult DeleteCoruse(int id)
-        {
-            var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            if (role == "Teacher")
-            {
-                courseService.DeleteCourse(id);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("Brak dostępu!");
-            }
-            ;
-        }
         
         [HttpPost("CreateCourse")]
         public IActionResult CreateCoruse(CourseDTO course)
@@ -68,20 +53,35 @@ namespace OnlyCreateDatabase.Controllers
             
         }
 
-        [HttpPatch("EditCourse/{id}")]
-        public IActionResult EditCourse(CourseDTO course, [FromRoute] int id)
+        [HttpPatch("EditCourse/{courseId}")]
+        public IActionResult EditCourse(CourseDTO course, [FromRoute] int courseId)
         {
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
             
             if (role == "Teacher")
             {
-                courseService.EditCourse(id, course);
+                courseService.EditCourse(courseId, course);
                 return Ok();
             }
             else
             {
                 return BadRequest("Coś poszło nie tak!");
             }
+        }
+        [HttpDelete("DeleteCourse/{courseId}")]
+        public IActionResult DeleteCoruse([FromRoute] int courseId)
+        {
+            var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            if (role == "Teacher")
+            {
+                courseService.DeleteCourse(courseId);
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Brak dostępu!");
+            }
+            ;
         }
 
     }

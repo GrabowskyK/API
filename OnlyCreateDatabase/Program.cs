@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.Services.CourseServ;
+using OnlyCreateDatabase.Services.EnrollmentServ;
 using OnlyCreateDatabase.Services.UserServ;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -19,6 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 
 builder.Services.AddSwaggerGen(options =>
 {

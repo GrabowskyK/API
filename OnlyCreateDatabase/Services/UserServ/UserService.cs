@@ -24,6 +24,7 @@ namespace OnlyCreateDatabase.Services.UserServ
         public IEnumerable<UserDTO> GetUsers() => databaseContext.Users
             .Select(u => new UserDTO
             {
+                Id = u.Id,
                 Name = u.Name,
                 Surname = u.Surname,
                 Username = u.Username
