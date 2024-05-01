@@ -1,5 +1,7 @@
-﻿using OnlyCreateDatabase.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO.ExercisesDTO;
+using OnlyCreateDatabase.DTO.FileUploadDTO;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.ExerciseServ
@@ -14,27 +16,96 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
             configuration = _configuration;
         }
 
-        public IEnumerable<ExerciseDTO> AllExerciseFromCourse(int id) => databaseContext.Exercise
-            .Where(e => e.CourseId == id)
-            .Select(e => new ExerciseDTO
+        public IEnumerable<InfoExerciseDTO> AllExerciseFromCourse(int courseId) => databaseContext.Exercise
+            .Where(e => e.CourseId == courseId)
+            .Include(e => e.FileUpload)
+            .Select(e => new InfoExerciseDTO
             {
+                CourseId = e.CourseId,
+                ExerciseId = e.Id,
                 ExerciseName = e.ExerciseName,
                 DeadLine = e.DeadLine,
                 ExerciseDescription = e.ExerciseDescription,
+                FileUpload = e.FileUpload == null ? null : new InfoFileDTO
+                {
+                    Id = e.FileUpload.Id,
+                    FileName = e.FileUpload.FileName
+                }
             });
 
-        public void AddExercise(ExerciseDTO exercise)
+
+
+        public InfoExerciseDTO? GetExerciseById(int exerciseId) => databaseContext.Exercise
+                .Where(e => e.Id == exerciseId)
+                .Include(e => e.FileUpload)
+                .Select(e => new InfoExerciseDTO
+                {
+                    CourseId = e.CourseId,
+                    ExerciseId = e.Id,
+                    ExerciseName = e.ExerciseName,
+                    DeadLine = e.DeadLine,
+                    ExerciseDescription = e.ExerciseDescription,
+                    FileUpload = e.FileUpload == null ? null : new InfoFileDTO
+                    {
+                        Id = e.FileUpload.Id,
+                        FileName = e.FileUpload.FileName
+                    }
+                })
+                .FirstOrDefault();
+                
+
+        public void AddExercise(ExerciseDTO exercise, FileUpload file)
         {
-            Exercise newExercise = new Exercise(exercise.CourseID, exercise.ExerciseName, exercise.DeadLine, exercise.ExerciseDescription);
+
+            Exercise newExercise = new Exercise(exercise.CourseId, exercise.ExerciseName, exercise.DeadLine, exercise.ExerciseDescription);
+            if(file != null)
+            {
+                newExercise.FileUpload = file;
+            }
             databaseContext.Exercise.Add(newExercise);
             databaseContext.SaveChanges();
         }
 
-        public void DeleteExercise(int id)
+        public void DeleteExercise(int exerciseId)
         {
-            var exercise = databaseContext.Exercise.FirstOrDefault(e => e.Id == id);
-            databaseContext.Exercise.Remove(exercise);
+            Exercise exercise = databaseContext.Exercise
+                .FirstOrDefault(e => e.Id == exerciseId)!;
+            if(exercise.FileUploadId != null)
+            {
+                FileUpload file = databaseContext.Files.FirstOrDefault(f => exercise.FileUploadId == f.Id)!;
+                databaseContext.Files.Remove(file!);
+                
+            }
+            databaseContext.Exercise.Remove(exercise!);
             databaseContext.SaveChanges();
+        }
+
+        public async Task UpdateFileInExercise(int exerciseId, int fileId)
+        {
+            var exercise = await databaseContext.Exercise.FindAsync(exerciseId);
+            exercise.FileUploadId = fileId;
+            databaseContext.Update(exercise);
+            databaseContext.SaveChanges();
+        }
+
+        public async Task EditExercise(int exerciseId, EditExerciseDTO oldExercise)
+        {
+            var exercise = await databaseContext.Exercise.FindAsync(exerciseId);
+            if(oldExercise.ExerciseName != null && oldExercise.ExerciseName != "")
+            {
+                exercise.ExerciseName = oldExercise.ExerciseName;
+            }
+            if(oldExercise.ExerciseDescription != null && oldExercise.ExerciseDescription != "")
+            {
+                exercise.ExerciseDescription = oldExercise.ExerciseDescription;
+            }
+            if(oldExercise.DeadLine != null && oldExercise.DeadLine != "")
+            {
+                exercise.DeadLine = oldExercise.DeadLine;
+            }
+            databaseContext.Exercise.Update(exercise);
+            databaseContext.SaveChanges();
+
         }
     }
 }

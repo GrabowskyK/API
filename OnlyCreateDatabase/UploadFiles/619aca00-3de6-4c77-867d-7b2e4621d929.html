@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przesyłanie pliku</title>
+</head>
+<body>
+    <h2>Przesyłanie pliku</h2>
+    <form action="https://localhost:7253/File/Upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <button type="submit">Prześlij plik</button>
+
+    </form>
+	<form action="http://localhost:8080/WeatherForecast" method="GET">
+        <button type="submit">Prześlij plik</button>
+
+    </form>
+ <h1>Send JSON Data</h1>
+    <form id="myForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name"><br><br>
+        <label for="age">Age:</label>
+        <input type="text" id="password" name="password"><br><br>
+        <button type="button" onclick="sendData()">Send Data</button>
+    </form>
+
+<h2>Stwórz Kurs</h2>
+    <form id="courseForm">
+        <label for="name">Nazwa Kursu:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="description">Opis Kursu:</label><br>
+        <input type="text" id="description" name="description"><br><br>
+        <input type="button" value="Wyślij Kurs" onclick="submitCourse()">
+    </form> 
+<h1>Upload File to API. PORT: 7253 = https://localhost:7253/h1>
+    <form action="https://localhost:7253/Exercise/AddFile" method="post" enctype="multipart/form-data">
+        <label for="fileUpload">Choose a file:</label>
+        <input type="file" id="fileUpload" name="formFile" required>
+        <button type="submit">Upload File</button>
+    </form>
+
+<h1>Upload File to API. PORT: 5162 = http://localhost:5162</h1>
+    <form action="http://localhost:5162/Exercise/AddFile" method="post" enctype="multipart/form-data">
+        <label for="fileUpload">Choose a file:</label>
+        <input type="file" id="fileUpload" name="formFile" required>
+        <button type="submit">Upload File</button>
+    </form>
+
+<h2>Exercise Form</h2>
+    <form action="http://localhost:5162/Exercise/AddExercise" method="post" enctype="multipart/form-data">
+        <label for="courseId">Course ID:</label><br>
+        <input type="number" id="courseId" name="courseId"><br><br>
+        
+        <label for="exerciseName">Exercise Name:</label><br>
+        <input type="text" id="exerciseName" name="exerciseName"><br><br>
+        
+        <label for="exerciseDescription">Exercise Description:</label><br>
+        <textarea id="exerciseDescription" name="exerciseDescription"></textarea><br><br>
+        
+        <label for="deadline">Deadline:</label><br>
+        <input type="datetime-local" id="deadline" name="deadline"><br><br>
+        
+        <label for="file">File:</label><br>
+        <input type="file" id="file" name="file"><br><br>
+        
+        <input type="submit" value="Submit">
+    </form>
+
+<h2>Pobranie zadania</h2>
+<a href="http://localhost:5162/Exercise/3/File" method="GET">
+
+<h2>Link do zadanie</h2>
+<a href="https://localhost:7253/Exercise/download-file/1" target="_blank">Otwórz plik PDF</a>
+    <script>
+        function sendData() {
+            var form = document.getElementById("myForm");
+            var formData = new FormData(form);
+            var jsonData = {};
+            formData.forEach(function(value, key){
+                jsonData[key] = value;
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:5162/User/Login");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log("Success");
+                    console.log(xhr.responseText);
+                } else {
+                    console.error("Request failed");
+                }
+            };
+            xhr.send(JSON.stringify(jsonData));
+        }
+
+function submitCourse() {
+            // Przykład tokenu JWT, powinieneś tutaj wstawić rzeczywisty token
+            const token = 'twoj_rzeczywisty_token_tutaj';
+
+            // Dane z formularza
+            const courseData = {
+                Name: document.getElementById('name').value,
+                Description: document.getElementById('description').value
+            };
+
+            // Wykonaj żądanie fetch do Twojego API
+            fetch('http://localhost:5162/CreateCourse', { // Zmień URL na właściwy endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Dołącz token JWT w nagłówku autoryzacji
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(courseData)
+            })
+            .then(response => {
+                if(response.ok) {
+                    return response.json();
+                }
+                throw new Error('Coś poszło nie tak z żądaniem...');
+            })
+            .then(data => console.log(data))
+            .catch(error => console.error('Błąd:', error));
+        }
+    </script>
+</body>
+</html>

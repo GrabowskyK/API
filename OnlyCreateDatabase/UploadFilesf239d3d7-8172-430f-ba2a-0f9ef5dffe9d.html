@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przesyłanie pliku</title>
+</head>
+<body>
+    <h2>Przesyłanie pliku</h2>
+    <form action="https://localhost:7253/File/Upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <button type="submit">Prześlij plik</button>
+
+    </form>
+	<form action="http://localhost:8080/WeatherForecast" method="GET">
+        <button type="submit">Prześlij plik</button>
+
+    </form>
+ <h1>Send JSON Data</h1>
+    <form id="myForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name"><br><br>
+        <label for="age">Age:</label>
+        <input type="text" id="password" name="password"><br><br>
+        <button type="button" onclick="sendData()">Send Data</button>
+    </form>
+
+<h2>Stwórz Kurs</h2>
+    <form id="courseForm">
+        <label for="name">Nazwa Kursu:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="description">Opis Kursu:</label><br>
+        <input type="text" id="description" name="description"><br><br>
+        <input type="button" value="Wyślij Kurs" onclick="submitCourse()">
+    </form> 
+
+    <script>
+        function sendData() {
+            var form = document.getElementById("myForm");
+            var formData = new FormData(form);
+            var jsonData = {};
+            formData.forEach(function(value, key){
+                jsonData[key] = value;
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:5162/User/Login");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log("Success");
+                    console.log(xhr.responseText);
+                } else {
+                    console.error("Request failed");
+                }
+            };
+            xhr.send(JSON.stringify(jsonData));
+        }
+
+function submitCourse() {
+            // Przykład tokenu JWT, powinieneś tutaj wstawić rzeczywisty token
+            const token = 'twoj_rzeczywisty_token_tutaj';
+
+            // Dane z formularza
+            const courseData = {
+                Name: document.getElementById('name').value,
+                Description: document.getElementById('description').value
+            };
+
+            // Wykonaj żądanie fetch do Twojego API
+            fetch('http://localhost:5162/CreateCourse', { // Zmień URL na właściwy endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Dołącz token JWT w nagłówku autoryzacji
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(courseData)
+            })
+            .then(response => {
+                if(response.ok) {
+                    return response.json();
+                }
+                throw new Error('Coś poszło nie tak z żądaniem...');
+            })
+            .then(data => console.log(data))
+            .catch(error => console.error('Błąd:', error));
+        }
+    </script>
+</body>
+</html>

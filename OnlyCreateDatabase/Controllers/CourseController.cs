@@ -57,7 +57,7 @@ namespace OnlyCreateDatabase.Controllers
         public IActionResult EditCourse(CourseDTO course, [FromRoute] int courseId)
         {
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            
+           
             if (role == "Teacher")
             {
                 courseService.EditCourse(courseId, course);

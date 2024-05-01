@@ -23,12 +23,7 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(model);
         }
 
-        [HttpDelete("DeleteUser/{id}")]
-        public IActionResult DeleteUser(int id)
-        {
-            userService.DeleteUserById(id);
-            return Ok("Usunięto");
-        }
+        
 
         [HttpPost("Register")]
         public IActionResult Register(RegisterDTO register)
@@ -54,6 +49,13 @@ namespace OnlyCreateDatabase.Controllers
             {
                 return BadRequest("User are unknown or password is incorrect!");
             }
+        }
+
+        [HttpDelete("DeleteUser/{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            userService.DeleteUserById(id);
+            return Ok("Usunięto");
         }
     }
 }

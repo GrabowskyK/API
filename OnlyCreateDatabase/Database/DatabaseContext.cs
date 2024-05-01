@@ -47,5 +47,6 @@ namespace OnlyCreateDatabase.Database
         public DbSet<Exercise> Exercise { get; set; }
         public DbSet<Grade> Grades { get; set; }
         public DbSet<FileUpload> Files { get; set; }
+        public DbSet<Test> Tests { get; set; }
     }
 }

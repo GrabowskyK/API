@@ -6,6 +6,8 @@ using Microsoft.OpenApi.Models;
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.Services.CourseServ;
 using OnlyCreateDatabase.Services.EnrollmentServ;
+using OnlyCreateDatabase.Services.ExerciseServ;
+using OnlyCreateDatabase.Services.FileUploadServ;
 using OnlyCreateDatabase.Services.UserServ;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -21,6 +23,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 builder.Services.AddSwaggerGen(options =>
 {

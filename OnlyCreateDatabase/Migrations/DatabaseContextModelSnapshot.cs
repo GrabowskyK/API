@@ -118,7 +118,15 @@ namespace OnlyCreateDatabase.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<byte[]>("FileBlob")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
                     b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileNameDatabase")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -170,6 +178,21 @@ namespace OnlyCreateDatabase.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Grades");
+                });
+
+            modelBuilder.Entity("OnlyCreateDatabase.Model.Test", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("FileBlob")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tests");
                 });
 
             modelBuilder.Entity("OnlyCreateDatabase.Model.User", b =>
