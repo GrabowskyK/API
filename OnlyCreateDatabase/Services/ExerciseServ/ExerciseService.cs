@@ -21,7 +21,7 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
             .Include(e => e.FileUpload)
             .Select(e => new InfoExerciseDTO
             {
-                CourseId = e.CourseId,
+                CourseId = (int) e.CourseId,
                 ExerciseId = e.Id,
                 ExerciseName = e.ExerciseName,
                 DeadLine = e.DeadLine,
@@ -40,7 +40,7 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
                 .Include(e => e.FileUpload)
                 .Select(e => new InfoExerciseDTO
                 {
-                    CourseId = e.CourseId,
+                    CourseId = (int) e.CourseId,
                     ExerciseId = e.Id,
                     ExerciseName = e.ExerciseName,
                     DeadLine = e.DeadLine,

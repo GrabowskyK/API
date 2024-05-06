@@ -7,7 +7,8 @@
         public User User { get; set; } = null;
         public int CourseId { get; set; }
         public Course Course { get; set; } = null;
-        public bool IsInCourse { get; set; } = false;
+        public bool UserDecision { get; set; } = false;
+        public bool AdminDecision { get; set; } = false;
 
         public Enrollment() { }
         public Enrollment(int userId, int courseId)

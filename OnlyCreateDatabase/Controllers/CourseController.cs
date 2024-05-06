@@ -34,16 +34,22 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(model);
         }
 
-        
+        [HttpGet("{courseId}")]
+        public IActionResult GetCourse([FromRoute] int courseId)
+        {
+            var model = courseService.GetCourseById(courseId);
+            return Ok(model);
+        }
+
+
         [HttpPost("CreateCourse")]
         public IActionResult CreateCoruse(CourseDTO course)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (role == "Teacher")
             {
-                courseService.CreateCourse(course, int.Parse(userId));
+                courseService.CreateCourse(course, Int32.Parse(userId));
                 return Ok();
             }
             else
@@ -74,7 +80,7 @@ namespace OnlyCreateDatabase.Controllers
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
             if (role == "Teacher")
             {
-                courseService.DeleteCourse(courseId);
+                courseService.DeleteCourseAsync(courseId);
                 return Ok();
             }
             else

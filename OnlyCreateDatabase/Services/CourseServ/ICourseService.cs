@@ -1,4 +1,5 @@
 ﻿using OnlyCreateDatabase.DTO;
+using OnlyCreateDatabase.DTO.CourseDT;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.CourseServ
@@ -6,10 +7,11 @@ namespace OnlyCreateDatabase.Services.CourseServ
     public interface ICourseService
     {
 
-        public IEnumerable<Course> AllCourse();
-        public IEnumerable<Course> AllCourseByUserId(int id);
-        public void CreateCourse(CourseDTO course, int userId);
-        public void DeleteCourse(int id);
+        IEnumerable<CourseInfoDTO> AllCourse();
+        IEnumerable<CourseInfoDTO> AllCourseByUserId(int id);
+        void CreateCourse(CourseDTO course, int userId);
+        CourseInfoDTO GetCourseById(int id);
+        void DeleteCourseAsync(int id);
         void EditCourse(int courseId, CourseDTO course);
 
 

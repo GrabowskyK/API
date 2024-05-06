@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO;
+using OnlyCreateDatabase.DTO.CourseDT;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.CourseServ
@@ -15,22 +16,75 @@ namespace OnlyCreateDatabase.Services.CourseServ
             configuration = _configuration;
         }
 
-        public IEnumerable<Course> AllCourse() => databaseContext.Courses
-            .Include(c => c.User);
+        public IEnumerable<CourseInfoDTO> AllCourse() => databaseContext.Courses
+            .Include(c => c.User)
+            .Select(c => new CourseInfoDTO
+            {
+                Name = c.Name,
+                Description = c.Description,
+                User = new DTO.UsersDTO.UserDTO
+                {
+                    Id = c.User.Id,
+                    Name = c.User.Name,
+                    Surname = c.User.Surname
+                }
+            });
 
-        public IEnumerable<Course> AllCourseByUserId(int id) => databaseContext.Courses.
-            Where(c => c.UserId == id);
+        public IEnumerable<CourseInfoDTO> AllCourseByUserId(int id) => databaseContext.Courses
+            .Where(c => c.UserId == id)
+            .Include(c => c.User)
+            .Select(c => new CourseInfoDTO
+            {
+                Name = c.Name,
+                Description = c.Description,
+                User = new DTO.UsersDTO.UserDTO
+                {
+                    Id = c.User.Id,
+                    Name = c.User.Name,
+                    Surname = c.User.Surname
+                }
+            });
 
-        public void CreateCourse(CourseDTO course, int userId)
+        public CourseInfoDTO GetCourseById(int id) => databaseContext.Courses
+            .Select(c => new CourseInfoDTO
+            {
+                Id = id,
+                Name = c.Name,
+                Description = c.Description,
+                User = new DTO.UsersDTO.UserDTO
+                {
+                    Id = c.User.Id,
+                    Name = c.User.Name,
+                    Surname = c.User.Surname
+                }
+
+            }).First(c => c.Id == id);
+            
+
+        public async void CreateCourse(CourseDTO course,int userId)
         {
             Course newCourse = new Course(course.Name, userId, course.Description);
             databaseContext.Courses.Add(newCourse);
             databaseContext.SaveChanges();
         }
 
-        public void DeleteCourse(int id)
+        public async void DeleteCourseAsync(int id)
         {
-            var course = databaseContext.Courses.FirstOrDefault(c => c.Id == id);
+            IEnumerable<FileUpload> files;
+            var course = await databaseContext.Courses.FindAsync(id);
+            databaseContext.Courses.Update(course);
+            var exercises = databaseContext.Exercise.Where(e => e.CourseId == id);
+            var enrolls = databaseContext.Enrollments.Where(e => e.CourseId == course.Id);
+            databaseContext.Enrollments.RemoveRange(enrolls);
+
+            foreach (var item in exercises)
+            {
+                files = databaseContext.Files.Where(f => f.Id == item.FileUploadId);
+                databaseContext.Files.RemoveRange(files);
+            }
+
+            databaseContext.Exercise.RemoveRange(exercises);
+
             databaseContext.Courses.Remove(course);
             databaseContext.SaveChanges();
         }

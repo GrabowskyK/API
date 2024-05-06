@@ -1,6 +1,7 @@
 ﻿using OnlyCreateDatabase.Services.UserServ;
 using Microsoft.AspNetCore.Mvc;
 using OnlyCreateDatabase.DTO.UsersDTO;
+using System.Security.Claims;
 
 namespace OnlyCreateDatabase.Controllers
 {
@@ -28,6 +29,9 @@ namespace OnlyCreateDatabase.Controllers
         [HttpPost("Register")]
         public IActionResult Register(RegisterDTO register)
         {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            _logger.LogInformation(userId);
             if (userService.Register(register))
                 return Ok();
             else
@@ -51,7 +55,7 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        [HttpDelete("DeleteUser/{id}")]
+        [HttpDelete("DeleteUser")]
         public IActionResult DeleteUser(int id)
         {
             userService.DeleteUserById(id);

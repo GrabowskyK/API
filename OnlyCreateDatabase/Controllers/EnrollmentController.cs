@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OnlyCreateDatabase.Model;
 using OnlyCreateDatabase.Services.CourseServ;
 using OnlyCreateDatabase.Services.EnrollmentServ;
@@ -22,29 +23,55 @@ namespace OnlyCreateDatabase.Controllers
         [HttpGet("InCourse/{courseId}")]
         public IActionResult InCourse([FromRoute] int courseId)
         {
-            var model = enrollmentService.UsersInCourse(courseId, true);
+            var model = enrollmentService.UsersInCourse(courseId);
             return Ok(model);
         }
 
-        [HttpGet("NotInCourse/{courseId}")]
+        [HttpGet("NotInCourseYet/{courseId}")]
         public IActionResult NotInCourse([FromRoute] int courseId)
         {
-            var model = enrollmentService.UsersInCourse(courseId, false);
+            var model = enrollmentService.UsersNotInCourseYet(courseId);
             return Ok(model);
+        }
+
+        [HttpGet("InvitedCourse")]
+        public IActionResult InvitedCourse()
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return BadRequest("Problem z przekazaniem tokenu!");
+            }
+            else
+            {
+                var model = enrollmentService.UserCourseInvited(int.Parse(userId));
+                return Ok(model);
+            } 
         }
 
         [HttpGet("MyCourses")]
         public IActionResult MyCourses()
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            var model = enrollmentService.MyCourses(int.Parse(userId));
-            return Ok(model);
+            if(userId == null)
+            {
+                return BadRequest("Problem z przekazaniem tokenu!");
+            }
+            else
+            {
+                var model = enrollmentService.MyCourses(int.Parse(userId));
+                return Ok(model);
+            }
+            
         }
+
+        
 
         [HttpPost("JoinCourse/{courseId}")]
         public IActionResult JoinToCourse([FromRoute] int courseId)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var userName = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             if(enrollmentService.IsAlreadyInCourse(int.Parse(userId), courseId) == false)
             {
                 enrollmentService.JoinCourse(int.Parse(userId), courseId);

@@ -1,4 +1,6 @@
-﻿using OnlyCreateDatabase.DTO.ExercisesDTO;
+﻿using OnlyCreateDatabase.DTO.EnrollmentDTO;
+using OnlyCreateDatabase.DTO.ExercisesDTO;
+using OnlyCreateDatabase.DTO.UsersDTO;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.ExerciseServ
@@ -10,7 +12,6 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
         public void AddExercise(ExerciseDTO exercise, FileUpload file);
         
         public void DeleteExercise(int exerciseId);
-
         Task UpdateFileInExercise(int exerciseId, int fileId);
         Task EditExercise(int exerciseId, EditExerciseDTO oldExercise);
     }
