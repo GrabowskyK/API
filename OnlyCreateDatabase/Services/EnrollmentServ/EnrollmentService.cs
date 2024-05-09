@@ -27,10 +27,10 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
         public bool IsAlreadyInCourse(int userId, int courseId) => databaseContext.Enrollments
             .Any(e => e.UserId == userId && e.CourseId == courseId);
 
-        public async void AcceptJoin(List<int> usersId, int courseId)
+        public async void AcceptJoin(int[] usersId, int courseId)
         {
-            var userToUpdate = databaseContext.Enrollments.Where(e => (e.CourseId == courseId && usersId.Contains(e.UserId)));
-            //IEnumerable<Enrollment> users = databaseContext.Enrollments.Where(e => e.CourseId == courseId);
+            var userToUpdate = databaseContext.Enrollments
+                .Where(e => (e.CourseId == courseId && usersId.Contains(e.UserId) && e.AdminDecision == false));
             foreach (var user in userToUpdate)
             {
                 user.AdminDecision = true;
@@ -40,7 +40,18 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
 
         }
 
-        public async void RemoveUserFromCourse(List<int> usersId, int courseId)
+        public void DeleteJoin(int[] usersId, int courseId)
+        {
+            var declineUsers = databaseContext.Enrollments
+                .Where(e => e.CourseId == courseId && usersId.Contains(e.UserId) && e.AdminDecision == false);
+            foreach (var user in declineUsers)
+            {
+                databaseContext.Remove(user);
+            }
+            databaseContext.SaveChanges();
+        }
+
+        public async void RemoveUserFromCourse(int[] usersId, int courseId)
         {
             var userToUpdate = databaseContext.Enrollments.Where(e => (e.CourseId == courseId && usersId.Contains(e.UserId)));
             databaseContext.Enrollments.RemoveRange(userToUpdate);
@@ -113,10 +124,27 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
                 }
             });
 
-        public async void AcceptUserJoin()
+        public void AcceptInvite(int userId, int courseId)
         {
-
+            var userEnrollment = databaseContext.Enrollments.
+                FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId && e.UserDecision == false);
+            if (userEnrollment != null)
+            {
+                userEnrollment!.UserDecision = true;
+                databaseContext.SaveChanges();
+            }
         }
- 
+
+        public async void DeleteInvite(int userId, int courseId)
+        {
+            var userEnrollment = databaseContext.Enrollments.
+                FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId && e.UserDecision == false);
+            
+            if (userEnrollment != null)
+            {
+                databaseContext.Enrollments.Remove(userEnrollment);
+                databaseContext.SaveChanges();
+            }
+        }
     }
 }

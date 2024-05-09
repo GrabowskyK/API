@@ -1,5 +1,6 @@
 ﻿using OnlyCreateDatabase.DTO.EnrollmentDTO;
 using OnlyCreateDatabase.DTO.UsersDTO;
+using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.EnrollmentServ
 {
@@ -11,7 +12,10 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
         IEnumerable<UserDTO> UsersNotInCourseYet(int courseId);
         IEnumerable<EnrollmentDTO> UserCourseInvited(int userId);
         IEnumerable<EnrollmentDTO> MyCourses(int userId);
-        void AcceptJoin(List<int> usersId, int courseId);
-        void RemoveUserFromCourse(List<int> usersId, int courseId);
+        void AcceptJoin(int[] usersId, int courseId);
+        void DeleteJoin(int[] usersId, int courseId);
+        void RemoveUserFromCourse(int[] usersId, int courseId);
+        void AcceptInvite(int userId, int courseId);
+        void DeleteInvite(int userId, int courseId);
     }
 }

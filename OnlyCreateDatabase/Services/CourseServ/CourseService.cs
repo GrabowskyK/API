@@ -20,6 +20,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
             .Include(c => c.User)
             .Select(c => new CourseInfoDTO
             {
+                Id = c.Id,
                 Name = c.Name,
                 Description = c.Description,
                 User = new DTO.UsersDTO.UserDTO
@@ -35,6 +36,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
             .Include(c => c.User)
             .Select(c => new CourseInfoDTO
             {
+                Id = c.Id,
                 Name = c.Name,
                 Description = c.Description,
                 User = new DTO.UsersDTO.UserDTO
@@ -45,12 +47,13 @@ namespace OnlyCreateDatabase.Services.CourseServ
                 }
             });
 
-        public CourseInfoDTO GetCourseById(int id) => databaseContext.Courses
+        public IEnumerable<CourseInfoDTO> GetCourseById(int id) => databaseContext.Courses
+            .Where(c => c.Id == id)
             .Select(c => new CourseInfoDTO
             {
                 Id = id,
                 Name = c.Name,
-                Description = c.Description,
+                Description = c.Description ?? null,
                 User = new DTO.UsersDTO.UserDTO
                 {
                     Id = c.User.Id,
@@ -58,7 +61,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
                     Surname = c.User.Surname
                 }
 
-            }).First(c => c.Id == id);
+            });
             
 
         public async void CreateCourse(CourseDTO course,int userId)
@@ -97,6 +100,12 @@ namespace OnlyCreateDatabase.Services.CourseServ
             updateCourse.Description = course.Description;
             databaseContext.Courses.Update(updateCourse);
             databaseContext.SaveChanges();
+        }
+
+        public bool IsUserOwnerCourse(int userId, int courseId)
+        {
+
+            return databaseContext.Courses.Any(c => c.UserId == userId && c.Id == courseId);
         }
     }
 }
