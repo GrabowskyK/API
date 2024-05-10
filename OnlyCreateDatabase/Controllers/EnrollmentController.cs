@@ -167,8 +167,21 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        
+        [HttpDelete("SelfRemoveFromCourse/{courseId}")]
+        public IActionResult SelfRemoveFromCourse([FromRoute] int courseId)
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
+            {
+                enrollmentService.DeleteInvite(int.Parse(userId), courseId);
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("You are not owner of this course!");
+            }
+        }
 
-        
+
     }
 }

@@ -1,0 +1,107 @@
+﻿Course - http://localhost:5162/Course
+
+1.Wszystkie kursy
+URL: http://localhost:5162/Course/AllCourse
+DATA:
+[HttpGet]
+
+2. Wszystkie kursy stworzonego przez danego nauczyciela:
+URL: http://localhost:5162/Course/AllCourse/{userId}
+DATA: W linku userId
+[HttpGet]
+
+3. Dany kurs
+URL: http://localhost:5162/Course/{courseId}
+DATA: W linku courseId
+[HttpGet]
+
+4. Tworzenie kursu
+URL: http://localhost:5162/Course/CreateCourse
+DATA: {name, description} | wymaga tokenu w headers
+[HttpPost]
+
+5. Edycja kursu //zmień
+URL: http://localhost:5162/Course/EditCourse/{courseId}
+DATA: {name, description}*, w linku courseId | wymaga tokenu w headers
+*Nie trzeba podawać obu wartości lecz można
+[HttpPatch]
+
+6. Usunięcie kursu //zmień
+URL: http://localhost:5162/Course/DeleteCourse/{courseId}
+DATA: w linku courseId | wymaga tokenu w headers
+[HttpDelete]
+
+=======================
+=======================
+=======================
+
+Enrollment(zapisy) - http://localhost:5162/Enrollment
+
+1. Lista userów w kursie 
+URL: http://localhost:5162/Enrollment/InCourse/{courseId}
+DATA: w linku courseId
+[HttpGet]
+
+2. Lista userów, którzy czekają na akceptacje admina (Nie widzi tych co on zaprosił)
+URL: http://localhost:5162/Enrollment/NotInCourseYet/{courseId}
+DATA: w linku courseId
+[HttpGet]
+
+3. Lista kursów do których został zaproszony zalogowany user 
+URL: http://localhost:5162/Enrollment/InvitedCourse
+DATA: potrzebny token w headers
+[HttpGet]
+
+4. Lista kursów w których jest user (musi być zalogowany)
+URL: http://localhost:5162/Enrollment/MyCourses
+DATA: potrzebny token w headers
+[HttpGet]
+
+5. Zapisanie się do kursu przez zalogowanego usera
+URL: http://localhost:5162/Enrollment/JoinCourse/{courseId}
+DATA: w linku courseId ,potrzebny token w headers
+[HttpPost]
+
+6. Akceptacja przez nauczyciela o dołączenie do kursu
+URL: http://localhost:5162/Enrollment/AcceptJoin/{courseId}
+DATA: {int[] usersId}, w linku courseId | potrzebny token w headers
+INFO: 
+<----------------------------------------------------------------------->
+Nauczciel, który jest twórcą danego kursu jest w stanie zakceptować dołączenei userów do kursu.
+Jak ja to widze? Jest lista uczniów i można zaznaczyć, że tego ucznia, tego i tego zaznacza. Klika na przycisk i oni się dodają do kursu. Czyli potrzeba przesłać tablice id tych userów. NIE WIEM CZY ZADZIAŁA, bo nie wiedziałem jak przesłać tablice do api jak testowałem w python. Finalnie się udało, ale musiałem zmienić jakieś rzeczy tu i tu.
+<----------------------------------------------------------------------->
+[HttpPatch]
+
+7. Odrzucenie przez nauczyciela o dołączenie do kursu
+URL: http://localhost:5162/Enrollment/AcceptJoin/{courseId}
+DATA: {int[] usersId}, w linku courseId | potrzebny token w headers
+INFO: 
+<----------------------------------------------------------------------->
+Nauczciel, który jest twórcą danego kursu jest w stanie odrzucić dołączenei userów do kursu.
+Jak ja to widze? Jest lista uczniów i można zaznaczyć, że tego ucznia, tego i tego zaznacza. Klika na przycisk i oni się usuwają z kursu. Czyli potrzeba przesłać tablice id tych userów. NIE WIEM CZY ZADZIAŁA, bo nie wiedziałem jak przesłać tablice do api jak testowałem w python. Finalnie się udało, ale musiałem zmienić jakieś rzeczy tu i tu.
+<----------------------------------------------------------------------->
+[HttpPatch]
+
+8. Zakceptowanie zaproszenia do kursu od nauczyciela przez usera
+URL: http://localhost:5162/Enrollment/AcceptInvite/{courseId}
+DATA: w linku courseId | potrzebny token w headers
+INFO: Token usera, bo on musi zakceptować lub odrzucić
+[HttpPatch]
+
+9. Usunięcie zaproszenia do kursu od nauczyciela przez usera
+URL: http://localhost:5162/Enrollment/DeleteInvite/{courseId}
+DATA: w linku courseId | potrzebny token w headers
+INFO: Token usera, bo on musi zakceptować lub odrzucić
+[HttpDelete]
+
+10. Usunięcie usera z kursu przez nauczyciela
+URL: http://localhost:5162/Enrollment/RemoveUserFromCourse/{courseId}
+DATA: {int[] usersId}, w linku courseId | potrzebny token w headers
+INFO: Token nauczyciela, bo on musi usunąć. Tutaj tablica, bo a może będzie chciał usunąć więcej ludzi za jednym razem.
+[HttpDelete]
+
+11. Wypisanie się z kursu przez usera
+URL: http://localhost:5162/Enrollment/SelfRemoveFromCourse/{courseId}
+DATA:  w linku courseId | potrzebny token w headers
+INFO: Token usera, bo on musi się sam usunąć
+[HttpDelete]

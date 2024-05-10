@@ -107,5 +107,10 @@ namespace OnlyCreateDatabase.Services.CourseServ
 
             return databaseContext.Courses.Any(c => c.UserId == userId && c.Id == courseId);
         }
+
+        public void CourseExmapleData()
+        {
+
+        }
     }
 }

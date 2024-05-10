@@ -17,9 +17,10 @@ namespace OnlyCreateDatabase.Controllers
         private readonly IExerciseService exerciseService;
 
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IUserService _userService)
         {
             _logger = logger;
+            userService = _userService;
         }
 
         [HttpPost("/File/Upload")]
@@ -55,9 +56,10 @@ namespace OnlyCreateDatabase.Controllers
                 return BadRequest("Nie wybrano pliku lub plik jest pusty.");
             }
         }
-        [HttpGet("Test")]
+        [HttpPost("Test")]
         public IActionResult Test()
         {
+            userService.UserExmapleData();
             return Ok("XD");
         }
 
@@ -65,8 +67,8 @@ namespace OnlyCreateDatabase.Controllers
         [HttpPost("InsertToDatabase")]
         public IActionResult ExampleData()
         {
-
-            return Ok();
+            userService.UserExmapleData();
+            return Ok("Dodano");
         }
     }
 }

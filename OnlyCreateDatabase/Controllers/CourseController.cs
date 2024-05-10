@@ -62,9 +62,10 @@ namespace OnlyCreateDatabase.Controllers
         [HttpPatch("EditCourse/{courseId}")]
         public IActionResult EditCourse(CourseDTO course, [FromRoute] int courseId)
         {
+            var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
            
-            if (role == "Teacher")
+            if (teacherId != null && role == "Teacher" && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
             {
                 courseService.EditCourse(courseId, course);
                 return Ok();
@@ -77,8 +78,10 @@ namespace OnlyCreateDatabase.Controllers
         [HttpDelete("DeleteCourse/{courseId}")]
         public IActionResult DeleteCoruse([FromRoute] int courseId)
         {
+            var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            if (role == "Teacher")
+
+            if (teacherId != null && role == "Teacher" && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
             {
                 courseService.DeleteCourseAsync(courseId);
                 return Ok();
@@ -89,6 +92,8 @@ namespace OnlyCreateDatabase.Controllers
             }
             ;
         }
+
+        
 
     }
 }

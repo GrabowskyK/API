@@ -138,7 +138,7 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
         public async void DeleteInvite(int userId, int courseId)
         {
             var userEnrollment = databaseContext.Enrollments.
-                FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId && e.UserDecision == false);
+                FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId);
             
             if (userEnrollment != null)
             {
@@ -146,5 +146,6 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
                 databaseContext.SaveChanges();
             }
         }
+        
     }
 }
