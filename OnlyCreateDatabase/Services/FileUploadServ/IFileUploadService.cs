@@ -7,5 +7,6 @@ namespace OnlyCreateDatabase.Services.FileUploadServ
         Task<FileUpload> SaveFileAsync(IFormFile File);
         FileUpload? GetFile(int fileId);
         void DeleteFileAsync(int fileId);
+        bool IsFileExist(int fileId);
     }
 }

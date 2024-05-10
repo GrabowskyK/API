@@ -107,5 +107,9 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
             databaseContext.SaveChanges();
 
         }
+        public bool IsExerciseHasFile(int exerciseId) => databaseContext.Exercise.Any(e => e.FileUploadId == null && e.Id == exerciseId);
+        public bool IsUserOnwerExercise(int userId, int exerciseId) => databaseContext.Exercise
+            .Include(e => e.Course)
+            .Any(e => e.Course.UserId == userId && e.Id == exerciseId);
     }
 }

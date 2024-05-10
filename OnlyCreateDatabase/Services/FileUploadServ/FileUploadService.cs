@@ -64,5 +64,8 @@ namespace OnlyCreateDatabase.Services.FileUploadServ
 
             databaseContext.SaveChanges();
         }
+
+        public bool IsFileExist(int fileId) => databaseContext.Files.Any(f => f.Id == fileId);
+
     }
 }

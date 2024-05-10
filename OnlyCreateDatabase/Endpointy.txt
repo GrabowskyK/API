@@ -15,6 +15,11 @@ URL: http://localhost:5162/Course/{courseId}
 DATA: W linku courseId
 [HttpGet]
 
+3.1 Dany kurs i zadania w nim (bez załącznika do pliku)
+URL: http://localhost:5162/Course/Full/{courseId}
+DATA: W linku courseId
+[HttpGet]
+
 4. Tworzenie kursu
 URL: http://localhost:5162/Course/CreateCourse
 DATA: {name, description} | wymaga tokenu w headers
@@ -104,4 +109,104 @@ INFO: Token nauczyciela, bo on musi usunąć. Tutaj tablica, bo a może będzie 
 URL: http://localhost:5162/Enrollment/SelfRemoveFromCourse/{courseId}
 DATA:  w linku courseId | potrzebny token w headers
 INFO: Token usera, bo on musi się sam usunąć
+[HttpDelete]
+
+=======================
+=======================
+=======================
+
+Exercise - http://localhost:5162/Exercise
+
+1. Wszystkie zadania w danym kursie
+URL: http://localhost:5162/Exercise/{courseId}/AllExerciseInCourse
+DATA:  w linku courseId
+[HttpGet]
+
+2. Konkretne info o danym kursie
+URL: http://localhost:5162/Exercise/{exerciseId}
+DATA:  w linku exerciseId
+[HttpGet]
+
+3. Zwraca plik do pobrania danego zadania
+URL: http://localhost:5162/Exercise/{exerciseId}/File
+DATA:  w linku exerciseId
+[HttpGet]
+
+4. Dodawanie zadania
+URL: http://localhost:5162/Exercise/AddExercise
+DATA:  {CourseId, ExerciseName, ExerciseDescription, Deadline} + File (IFormFile)  | headers token właściciela kursu
+INFO: File jak i Description nie są wymagane (mogą być nullem).
+Dodawanie zadania jest tylko dla twórcy danego kursu, więc jeszcze potrzebny jest headers i token
+Tutaj podsyłam kod w python jak ja dodałem:
+===
+def AddExercise():
+    token = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjgzIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IlRvbWFzeiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlYWNoZXIiLCJleHAiOjE3MTU0NDg1MjF9.-PXiWFytSA66gnP1H0ueorexxWxmG12saFp0Od3M2q4'
+    url = 'http://localhost:5162/Exercise/AddExercise/'
+
+    headers = {'Authorization': 'Bearer ' + str(token)}
+    data = {
+        'CourseId': 23,
+        'ExerciseName': 'Dodatkowe zadania',
+        'DeadLine': '25.06.2024'
+    }
+
+    response = requests.post(url, data=data, headers=headers, verify=False)
+    print(response.text)
+===
+[HttpPost]
+
+5. Dodawanie pliku do zadania. Gdy dodano zadanie, ale zapomniało się o pliku
+URL: http://localhost:5162/Exercise/{exerciseId}/AddFileToExercise
+DATA:  exerciseId w linku + File (IFormFile)  | headers token właściciela kursu
+Tutaj podsyłam kod w python jak ja dodałem:
+===
+def AddFileToExercise():
+    token = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjgyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik1hZ2RhbGVuYSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlYWNoZXIiLCJleHAiOjE3MTU0NDg1NTV9.Lc83ykzFBuFvjS_I1-z4YC2jH24Svz2S2AwtNYBbWqY'
+    url = 'http://localhost:5162/Exercise/13/AddFileToExercise'
+
+    headers = {'Authorization': 'Bearer ' + str(token)}
+
+    # Ścieżka do pliku, który chcesz przesłać
+    file_path = 'C:/Users/xxx/xxx/xxx/chadge.gif'
+    # Wyślij żądanie POST
+    response = requests.patch(url, headers=headers, files={'File': open(file_path, 'rb')}, verify=False)
+    # response = requests.post(url, data=data, headers=headers, verify=False)
+    print(response.text)
+===
+[HttpPatch]
+
+6. Edycja zadania
+URL: http://localhost:5162/Exercise/{exerciseId}/EditExercise
+DATA: 
+{
+  "exerciseName": "string",
+  "exerciseDescription": "string",
+  "deadLine": "string"
+}
++ exerciseId w linku | headers token właściciela kursu
+INFO: Każda wartość może być null, ale też możesz nie podawać danej wartośći jeżeli nei jest zmieniana. Powinno zadziałać (przynajmniej w python)
+Tutaj podsyłam kod w python jak ja dodałem:
+===
+def EditExercise():
+    token = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjgyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik1hZ2RhbGVuYSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlYWNoZXIiLCJleHAiOjE3MTU0NDg1NTV9.Lc83ykzFBuFvjS_I1-z4YC2jH24Svz2S2AwtNYBbWqY'
+    url = 'http://localhost:5162/Exercise/13/EditExercise'
+
+    headers = {'Authorization': 'Bearer ' + str(token)}
+
+    data = {
+        'ExerciseDescription': 'Opis do tego zadania został zmeiniony w python'
+    }
+    response = requests.patch(url, headers=headers, json=data, verify=False)
+    print(response.text)
+===
+[HttpPatch]
+
+7. Usunięcie zadania
+URL: http://localhost:5162/Exercise/DeleteExercised
+DATA: {exerciseId}| headers token właściciela kursu
+[HttpDelete]
+
+8. Usunięcie pliku z zadania
+URL: http://localhost:5162/Exercise/DeleteFile
+DATA: {fileId}| headers token właściciela kursu
 [HttpDelete]

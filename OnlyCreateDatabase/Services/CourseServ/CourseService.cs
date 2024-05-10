@@ -2,6 +2,7 @@
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO;
 using OnlyCreateDatabase.DTO.CourseDT;
+using OnlyCreateDatabase.DTO.ExercisesDTO;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.CourseServ
@@ -49,6 +50,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
 
         public IEnumerable<CourseInfoDTO> GetCourseById(int id) => databaseContext.Courses
             .Where(c => c.Id == id)
+            .Include(c => c.Exercises)
             .Select(c => new CourseInfoDTO
             {
                 Id = id,
@@ -60,8 +62,41 @@ namespace OnlyCreateDatabase.Services.CourseServ
                     Name = c.User.Name,
                     Surname = c.User.Surname
                 }
-
             });
+
+        public IEnumerable<CourseInfoDTO> GetCourseWithExerciseById(int id)
+        {
+
+            List<InfoExerciseDTO> tempExercise = databaseContext.Exercise
+                .Where(e => e.CourseId == id)
+                .Select(e => new InfoExerciseDTO
+                {
+                    CourseId = e.CourseId,
+                    ExerciseId = e.Id,
+                    ExerciseName = e.ExerciseName,
+                    ExerciseDescription = e.ExerciseDescription,
+                    DeadLine = e.DeadLine,
+                    FileUpload = null,
+                }).ToList();
+
+            var courses = databaseContext.Courses
+            .Where(c => c.Id == id)
+            .Include(c => c.Exercises)
+            .Select(c => new CourseInfoDTO
+            {
+                Id = id,
+                Name = c.Name,
+                Description = c.Description ?? null,
+                User = new DTO.UsersDTO.UserDTO
+                {
+                    Id = c.User.Id,
+                    Name = c.User.Name,
+                    Surname = c.User.Surname
+                },
+                Exercises = tempExercise
+            });
+            return courses;
+        }
             
 
         public async void CreateCourse(CourseDTO course,int userId)

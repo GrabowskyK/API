@@ -11,6 +11,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
         IEnumerable<CourseInfoDTO> AllCourseByUserId(int id);
         void CreateCourse(CourseDTO course, int userId);
         IEnumerable<CourseInfoDTO> GetCourseById(int id);
+        IEnumerable<CourseInfoDTO> GetCourseWithExerciseById(int id);
         void DeleteCourseAsync(int id);
         void EditCourse(int courseId, CourseDTO course);
         bool IsUserOwnerCourse(int userId, int courseId);

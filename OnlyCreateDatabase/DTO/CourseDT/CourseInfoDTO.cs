@@ -1,4 +1,5 @@
-﻿using OnlyCreateDatabase.DTO.UsersDTO;
+﻿using OnlyCreateDatabase.DTO.ExercisesDTO;
+using OnlyCreateDatabase.DTO.UsersDTO;
 
 namespace OnlyCreateDatabase.DTO.CourseDT
 {
@@ -8,7 +9,7 @@ namespace OnlyCreateDatabase.DTO.CourseDT
         public string Name { get; set; }
         public string Description { get; set; }
         public UserDTO User { get; set; }
-
+        public List<InfoExerciseDTO> Exercises { get; set; }
         public CourseInfoDTO() { }
     }
 }

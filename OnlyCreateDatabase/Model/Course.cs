@@ -8,6 +8,7 @@
         public int? UserId { get; set; }
         public User User { get; set; }
         public ICollection<Enrollment> Enrollments { get; set; }
+        public ICollection<Exercise> Exercises { get; set; }
         public string createdAt { get; set; } = DateTime.Now.ToString();
         public string updatedAt { get; set; } = DateTime.Now.ToString();
 

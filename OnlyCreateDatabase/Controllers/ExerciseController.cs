@@ -3,10 +3,12 @@ using Microsoft.Extensions.Logging;
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO.ExercisesDTO;
 using OnlyCreateDatabase.Model;
+using OnlyCreateDatabase.Services.CourseServ;
 using OnlyCreateDatabase.Services.ExerciseServ;
 using OnlyCreateDatabase.Services.FileUploadServ;
 using OnlyCreateDatabase.Services.UserServ;
 using System.Net.Http;
+using System.Security.Claims;
 
 namespace OnlyCreateDatabase.Controllers
 {
@@ -17,11 +19,13 @@ namespace OnlyCreateDatabase.Controllers
         private readonly DatabaseContext databaseContext;
         private readonly ILogger<ExerciseController> _logger;
         private readonly IExerciseService exerciseService;
+        private readonly ICourseService courseService;
         private readonly IFileUploadService fileUploadService;
-        public ExerciseController(ILogger<ExerciseController> logger, IExerciseService _exerciseService, IFileUploadService _fileUploadService)
+        public ExerciseController(ILogger<ExerciseController> logger, IExerciseService _exerciseService, ICourseService _courseService, IFileUploadService _fileUploadService)
         {
             _logger = logger;
             exerciseService = _exerciseService;
+            courseService = _courseService;
             fileUploadService = _fileUploadService;
         }
         
@@ -66,49 +70,98 @@ namespace OnlyCreateDatabase.Controllers
         [HttpPost("AddExercise")]
         public async Task<IActionResult> AddExerciseAsync(ExerciseDTO exercise)
         {
-            if (exercise.File != null)
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (courseService.IsUserOwnerCourse(int.Parse(userId), exercise.CourseId))
             {
-                FileUpload file = await fileUploadService.SaveFileAsync(exercise.File);
-                exerciseService.AddExercise(exercise, file);
+                if(exercise.File != null){
+                    FileUpload file = await fileUploadService.SaveFileAsync(exercise.File);
+                    exerciseService.AddExercise(exercise, file);
+                }
+                else
+                {
+                    exerciseService.AddExercise(exercise, null);
+                }
+                return Ok("Exercise added");
             }
             else
             {
-                exerciseService.AddExercise(exercise, null);
+                return BadRequest("You are not owner of this course!");
             }
-
-
-            return Ok();
         }
 
         [HttpPatch("{exerciseId}/AddFileToExercise")]
         public async Task<IActionResult> AddFileToExerciseAsync([FromRoute] int exerciseId, IFormFile file)
         {
-            var fileUpload = await fileUploadService.SaveFileAsync(file); //HTTPPOST
-            await exerciseService.UpdateFileInExercise(exerciseId, fileUpload.Id); //HTTPPATCH
-            return Ok();
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId != null && exerciseService.IsUserOnwerExercise(int.Parse(userId), exerciseId))
+            {
+                if (exerciseService.IsExerciseHasFile(exerciseId))
+                {
+                    var fileUpload = await fileUploadService.SaveFileAsync(file); //HTTPPOST
+                    await exerciseService.UpdateFileInExercise(exerciseId, fileUpload.Id); //HTTPPATCH
+                    return Ok("Dodano plik!");
+                }
+                else
+                {
+                    return BadRequest("Exercise has already a file!");
+                }
+            }
+            else
+            {
+                return BadRequest("You are not owner of this course!");
+            }
+                
         }
 
         [HttpPatch("{exerciseId}/EditExercise")]
         public IActionResult EditExercise([FromRoute] int exerciseId, EditExerciseDTO exercise) //Czy tutaj wysyłać wszystko czy tylko name i descritpion?
         {
-            exerciseService.EditExercise(exerciseId, exercise);
-            return Ok();
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId != null && exerciseService.IsUserOnwerExercise(int.Parse(userId), exerciseId))
+            {
+                exerciseService.EditExercise(exerciseId, exercise);
+                return Ok("Exercise has been updated!");
+            }
+            else
+            {
+                return BadRequest("You are not owner of this course!");
+            }
         }
 
 
         [HttpDelete("DeleteExercise")]
         public IActionResult DeleteExercise(int exerciseId)
         {
-            exerciseService.DeleteExercise(exerciseId);
-            return Ok();
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            _logger.LogWarning(userId.ToString());
+            _logger.LogWarning(exerciseId.ToString());
+            _logger.LogWarning(exerciseService.IsUserOnwerExercise(int.Parse(userId), exerciseId).ToString());
+            if (userId != null && exerciseService.IsUserOnwerExercise(int.Parse(userId), exerciseId))
+            {
+                exerciseService.DeleteExercise(exerciseId);
+                return Ok("Exercise has been deleted!");
+            }
+            else
+            {
+                return BadRequest("You are not owner of this course");
+            }
         }
 
 
         [HttpDelete("DeleteFile")]
         public IActionResult DeleteFile(int fileId)
         {
-            fileUploadService.DeleteFileAsync(fileId);
-            return Ok();
+            if (fileUploadService.IsFileExist(fileId))
+            {
+                fileUploadService.DeleteFileAsync(fileId);
+                return Ok("File has been deleted!");
+            }
+            else
+            {
+                return BadRequest("File is not in database!");
+            }
         }
     }
 }

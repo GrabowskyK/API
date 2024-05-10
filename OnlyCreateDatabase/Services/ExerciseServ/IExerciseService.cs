@@ -14,5 +14,7 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
         public void DeleteExercise(int exerciseId);
         Task UpdateFileInExercise(int exerciseId, int fileId);
         Task EditExercise(int exerciseId, EditExerciseDTO oldExercise);
+        bool IsExerciseHasFile(int exerciseId);
+        bool IsUserOnwerExercise(int userId, int exerciseId);
     }
 }

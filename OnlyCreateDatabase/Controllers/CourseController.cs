@@ -41,6 +41,12 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(model);
         }
 
+        [HttpGet("Full/{courseId}")]
+        public IActionResult GetCourseWithExercise([FromRoute] int courseId)
+        {
+            var model = courseService.GetCourseWithExerciseById(courseId);
+            return Ok(model);
+        }
 
         [HttpPost("CreateCourse")]
         public IActionResult CreateCoruse(CourseDTO course)
