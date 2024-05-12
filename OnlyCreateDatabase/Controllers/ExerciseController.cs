@@ -19,16 +19,16 @@ namespace OnlyCreateDatabase.Controllers
         private readonly DatabaseContext databaseContext;
         private readonly ILogger<ExerciseController> _logger;
         private readonly IExerciseService exerciseService;
-        private readonly ICourseService courseService;
+        private readonly CourseService courseService;
         private readonly IFileUploadService fileUploadService;
-        public ExerciseController(ILogger<ExerciseController> logger, IExerciseService _exerciseService, ICourseService _courseService, IFileUploadService _fileUploadService)
+        public ExerciseController(ILogger<ExerciseController> logger, IExerciseService _exerciseService, CourseService _courseService, IFileUploadService _fileUploadService)
         {
             _logger = logger;
             exerciseService = _exerciseService;
             courseService = _courseService;
             fileUploadService = _fileUploadService;
         }
-        
+
 
         [HttpGet("{courseId}/AllExerciseInCourse")]
         public IActionResult GetAllExercise([FromRoute] int courseId)
@@ -49,7 +49,7 @@ namespace OnlyCreateDatabase.Controllers
         public IActionResult GetFileInExercise([FromRoute] int exerciseId)
         {
             var model = exerciseService.GetExerciseById(exerciseId);
-            
+
             if (model == null)
             {
                 return NotFound();
@@ -64,7 +64,7 @@ namespace OnlyCreateDatabase.Controllers
                 var file = fileUploadService.GetFile(model.FileUpload.Id);
                 var fileStream = new MemoryStream(file.FileBlob);
                 return File(fileStream, "application/pdf", model.FileUpload.FileName, true); // true oznacza inline
-            }         
+            }
         }
 
         [HttpPost("AddExercise")]
@@ -73,7 +73,8 @@ namespace OnlyCreateDatabase.Controllers
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (courseService.IsUserOwnerCourse(int.Parse(userId), exercise.CourseId))
             {
-                if(exercise.File != null){
+                if (exercise.File != null)
+                {
                     FileUpload file = await fileUploadService.SaveFileAsync(exercise.File);
                     exerciseService.AddExercise(exercise, file);
                 }
@@ -111,7 +112,7 @@ namespace OnlyCreateDatabase.Controllers
             {
                 return BadRequest("You are not owner of this course!");
             }
-                
+
         }
 
         [HttpPatch("{exerciseId}/EditExercise")]

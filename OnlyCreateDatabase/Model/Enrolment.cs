@@ -11,10 +11,12 @@
         public bool AdminDecision { get; set; } = false;
 
         public Enrollment() { }
-        public Enrollment(int userId, int courseId)
+        public Enrollment(int userId, int courseId, bool userDecision = false, bool adminDecision = false)
         {
             UserId = userId;
             CourseId = courseId;
+            UserDecision = userDecision;
+            AdminDecision = adminDecision;
         }
     }
 }

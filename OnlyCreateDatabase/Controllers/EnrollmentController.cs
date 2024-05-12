@@ -8,36 +8,37 @@ using System.Security.Claims;
 namespace OnlyCreateDatabase.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("enrollments")]
     public class EnrollmentController : Controller
     {
         private readonly ILogger<EnrollmentController> logger;
-        private readonly IEnrollmentService enrollmentService;
-        private readonly ICourseService courseService;
+        private readonly EnrollmentService enrollmentService;
+        private readonly CourseService courseService;
 
-        public EnrollmentController(ILogger<EnrollmentController> _logger, IEnrollmentService _enrollmentService, ICourseService _courseService)
+        public EnrollmentController(ILogger<EnrollmentController> _logger, EnrollmentService _enrollmentService, CourseService _courseService)
         {
             logger = _logger;
             enrollmentService = _enrollmentService;
             courseService = _courseService;
         }
 
-        [HttpGet("InCourse/{courseId}")] //Userzy w kursie
-        public IActionResult InCourse([FromRoute] int courseId)
+        [HttpGet("{courseId}/accept/{userId}")]
+        public ActionResult InCourse([FromRoute] int courseId, [FromRoute] int userId)
         {
-            var model = enrollmentService.UsersInCourse(courseId);
-            return Ok(model);
+            // TODO sprawdzenie czy token to admin
+            enrollmentService.Decision(userId, courseId, true, false);
+            return Ok();
         }
 
-        [HttpGet("NotInCourseYet/{courseId}")] //User, którzy są zapisani, ale jeszcze nie zakacepotwani
-        public IActionResult NotInCourse([FromRoute] int courseId)
+        [HttpGet("{courseId}/decline/{userId}")] //User, którzy są zapisani, ale jeszcze nie zakacepotwani
+        public ActionResult NotInCourse([FromRoute] int courseId, [FromRoute] int userId)
         {
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (teacherId != null && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
             {
-                var model = enrollmentService.UsersNotInCourseYet(courseId);
-                return Ok(model);
+                enrollmentService.RemoveEnrollment(courseId, userId);
+                return Ok();
             }
             else
             {
@@ -45,42 +46,14 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        [HttpGet("InvitedCourse")] //Kursy usera do których został zaproszony
-        public IActionResult InvitedCourse()
-        {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return BadRequest("Problem z przekazaniem tokenu!");
-            }
-            else
-            {
-                var model = enrollmentService.UserCourseInvited(int.Parse(userId));
-                return Ok(model);
-            } 
-        }
 
-        [HttpGet("MyCourses")] //Kursy zalogowanego usera
-        public IActionResult MyCourses()
+        [HttpPost("{courseId}/join")]
+        public ActionResult JoinToCourse([FromRoute] int courseId)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if(userId == null)
-            {
-                return BadRequest("Problem z przekazaniem tokenu!");
-            }
-            else
-            {
-                var model = enrollmentService.MyCourses(int.Parse(userId));
-                return Ok(model);
-            }
-            
-        }
+            if (userId == null) return NotFound();
 
-        [HttpPost("JoinCourse/{courseId}")]
-        public IActionResult JoinToCourse([FromRoute] int courseId)
-        {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if(enrollmentService.IsAlreadyInCourse(int.Parse(userId), courseId) == false)
+            if (enrollmentService.IsAlreadyInCourse(int.Parse(userId), courseId) == false)
             {
                 enrollmentService.JoinCourse(int.Parse(userId), courseId);
                 return Ok();
@@ -91,74 +64,25 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        [HttpPatch("AcceptJoin/{courseId}")] //Teacher
-        public IActionResult AcceptToCourse([FromQuery] int[] usersId, [FromRoute] int courseId)
+        [HttpPost("{courseId}/invite/{userId}")]
+        public ActionResult<int> InviteToCourse([FromRoute] int courseId, [FromRoute] int userId)
+        {
+            var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (teacherId != null && !courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId)) return Forbid("You not owner of this course!");
+            if (!enrollmentService.IsAlreadyInCourse(userId, courseId)) return BadRequest("User jest już zapisany!");
+
+            return Ok(enrollmentService.CreateEnrollment(userId, courseId, true));
+
+        }
+
+        [HttpDelete("{courseId}/remove/{userId}")]
+        public ActionResult RemoveUserFromCourse([FromQuery] int usersId, [FromRoute] int courseId)
         {
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (teacherId != null && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
             {
-                enrollmentService.AcceptJoin(usersId, courseId);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("You are not owner of this course!");
-            }
-        }
-
-        [HttpPatch("DeleteJoin/{courseId}")] //Teacher
-        public IActionResult DeleteJoin([FromQuery] int[] usersId, [FromRoute] int courseId)
-        {
-            var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (teacherId != null && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
-            {
-                enrollmentService.DeleteJoin(usersId, courseId);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("You are not owner of this course!");
-            }
-        }
-
-        [HttpPatch("AcceptInvite/{courseId}")]
-        public IActionResult AcceptInvite([FromRoute] int courseId)
-        {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId != null)
-            {
-                enrollmentService.AcceptInvite(int.Parse(userId), courseId);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("Błąd w przekazaniu tokena!");
-            }
-        }
-
-        [HttpDelete("DeleteInvite/{courseId}")]
-        public IActionResult DeleteInvite([FromRoute] int courseId)
-        {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId != null)
-            {
-                logger.LogWarning(userId.ToString());
-                enrollmentService.DeleteInvite(int.Parse(userId), courseId);
-                return Ok();
-            }
-            else
-            {
-                return BadRequest("User jest już zapisany!");
-            }
-        }
-
-        [HttpDelete("RemoveUserFromCourse/{courseId}")]
-        public IActionResult RemoveUserFromCourse([FromQuery] int[] usersId, [FromRoute] int courseId)
-        {
-            var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (teacherId != null && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
-            {
-                enrollmentService.RemoveUserFromCourse(usersId, courseId);
+                enrollmentService.RemoveEnrollment(usersId, courseId);
                 return Ok("Usunięto!");
             }
             else
@@ -167,13 +91,15 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        [HttpDelete("SelfRemoveFromCourse/{courseId}")]
-        public IActionResult SelfRemoveFromCourse([FromRoute] int courseId)
+        [HttpDelete("{courseId}/leave")]
+        public ActionResult LeaveCourse([FromRoute] int courseId)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            // TODO user nie moze wyjsc z kursu jesli jest wlasciciel
             if (userId != null)
             {
-                enrollmentService.DeleteInvite(int.Parse(userId), courseId);
+                enrollmentService.RemoveEnrollment(int.Parse(userId), courseId);
                 return Ok();
             }
             else

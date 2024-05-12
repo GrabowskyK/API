@@ -1,54 +1,62 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlyCreateDatabase.DTO;
+using OnlyCreateDatabase.DTO.CourseDT;
 using OnlyCreateDatabase.Model;
 using OnlyCreateDatabase.Services.CourseServ;
+using OnlyCreateDatabase.Services.EnrollmentServ;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace OnlyCreateDatabase.Controllers
 {
-   
+
     [ApiController]
-    [Route("[controller]")]
+    [Route("courses")]
+
+    [Produces("application/json")]
     public class CourseController : ControllerBase
     {
+
         private readonly ILogger<CourseController> logger;
-        private readonly ICourseService courseService;
-        public CourseController(ILogger<CourseController> _logger, ICourseService _courseService) 
+        private readonly CourseService courseService;
+        private readonly CourseService enrollmentService;
+        public CourseController(ILogger<CourseController> _logger, CourseService _courseService)
         {
             courseService = _courseService;
             logger = _logger;
-        }
-        [HttpGet("AllCourse")]
-        public IActionResult AllCourse()
-        {
-            var model = courseService.AllCourse();
-            return Ok(model);
+
         }
 
-        [HttpGet("AllCourse/{userId}")]
-        public IActionResult TeachersCourse([FromRoute] int userId) //Kursy nauczyciela jakie posiada
+        [HttpGet("")]
+        public ActionResult<IEnumerable<CourseListItemDTO>> AllCourse([FromQuery] CourseService.AllCourseType type)
         {
-            var model = courseService.AllCourseByUserId(userId);
-            return Ok(model);
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return Ok(courseService.AllCourse(type, int.Parse(userId)));
+        }
+
+        [HttpGet("user/{userId}")]
+        public ActionResult<IEnumerable<CourseInfoDTO>> TeachersCourse([FromRoute] int userId) //Kursy nauczyciela jakie posiada
+        {
+            return Ok(courseService.AllCourseByUserId(userId));
         }
 
         [HttpGet("{courseId}")]
-        public IActionResult GetCourse([FromRoute] int courseId)
+        public ActionResult<CourseInfoDTO> GetCourse([FromRoute] int courseId)
         {
-            var model = courseService.GetCourseById(courseId);
-            return Ok(model);
-        }
 
-        [HttpGet("Full/{courseId}")]
-        public IActionResult GetCourseWithExercise([FromRoute] int courseId)
-        {
             var model = courseService.GetCourseWithExerciseById(courseId);
+            Console.WriteLine(courseId);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
             return Ok(model);
         }
 
-        [HttpPost("CreateCourse")]
+        [HttpPost("")]
         public IActionResult CreateCoruse(CourseDTO course)
         {
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
@@ -62,15 +70,15 @@ namespace OnlyCreateDatabase.Controllers
             {
                 return BadRequest("Brak dostępu!");
             }
-            
+
         }
 
-        [HttpPatch("EditCourse/{courseId}")]
+        [HttpPatch("{courseId}")]
         public IActionResult EditCourse(CourseDTO course, [FromRoute] int courseId)
         {
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-           
+
             if (teacherId != null && role == "Teacher" && courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId))
             {
                 courseService.EditCourse(courseId, course);
@@ -81,7 +89,7 @@ namespace OnlyCreateDatabase.Controllers
                 return BadRequest("Coś poszło nie tak!");
             }
         }
-        [HttpDelete("DeleteCourse/{courseId}")]
+        [HttpDelete("{courseId}")]
         public IActionResult DeleteCoruse([FromRoute] int courseId)
         {
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -99,7 +107,7 @@ namespace OnlyCreateDatabase.Controllers
             ;
         }
 
-        
+
 
     }
 }

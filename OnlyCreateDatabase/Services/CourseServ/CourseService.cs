@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO;
 using OnlyCreateDatabase.DTO.CourseDT;
@@ -7,8 +8,14 @@ using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.CourseServ
 {
-    public class CourseService : ICourseService
+    public class CourseService
     {
+        public enum AllCourseType
+        {
+            All,
+            User,
+            InvitedTo
+        }
         private readonly DatabaseContext databaseContext;
         private readonly IConfiguration configuration;
         public CourseService(DatabaseContext _databaseContext, IConfiguration _configuration)
@@ -17,20 +24,43 @@ namespace OnlyCreateDatabase.Services.CourseServ
             configuration = _configuration;
         }
 
-        public IEnumerable<CourseInfoDTO> AllCourse() => databaseContext.Courses
-            .Include(c => c.User)
-            .Select(c => new CourseInfoDTO
+        public IEnumerable<CourseListItemDTO> AllCourse(AllCourseType type, int? userId)
+        {
+            IQueryable<Course> query = databaseContext.Courses;
+
+
+            if (type == AllCourseType.User)
             {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                User = new DTO.UsersDTO.UserDTO
-                {
-                    Id = c.User.Id,
-                    Name = c.User.Name,
-                    Surname = c.User.Surname
-                }
-            });
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId));
+            }
+
+            if (type == AllCourseType.InvitedTo)
+            {
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId) && c.Enrollments.Any(e => e.UserDecision == false));
+            }
+
+            if (query == null)
+            {
+                return [];
+            }
+
+            return query
+
+           .Include(c => c.User).Select(c => new CourseListItemDTO
+           {
+               Id = c.Id,
+               Name = c.Name,
+               Description = c.Description,
+               Enrolled = c.Enrollments.Any(e => e.UserId == userId),
+               InvitedTo = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision == false),
+               User = new DTO.UsersDTO.UserDTO
+               {
+                   Id = c.User.Id,
+                   Name = c.User.Name,
+                   Surname = c.User.Surname
+               },
+           });
+        }
 
         public IEnumerable<CourseInfoDTO> AllCourseByUserId(int id) => databaseContext.Courses
             .Where(c => c.UserId == id)
@@ -44,66 +74,90 @@ namespace OnlyCreateDatabase.Services.CourseServ
                 {
                     Id = c.User.Id,
                     Name = c.User.Name,
-                    Surname = c.User.Surname
+                    Surname = c.User.Surname,
+                    Username = c.User.Username
                 }
             });
 
-        public IEnumerable<CourseInfoDTO> GetCourseById(int id) => databaseContext.Courses
-            .Where(c => c.Id == id)
+        public CourseInfoDTO? GetCourseById(int id)
+        {
+            var course = databaseContext.Courses
+                .Include(c => c.Exercises)
+                .Include(c => c.User)
+                .Select(c => new CourseInfoDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description ?? null,
+                    User = new DTO.UsersDTO.UserDTO
+                    {
+                        Id = c.User.Id,
+                        Name = c.User.Name,
+                        Surname = c.User.Surname,
+                        Username = c.User.Username
+                    }
+                })
+                .FirstOrDefault(c => c.Id == id);
+
+
+            return course;
+        }
+
+        public CourseInfoDTO GetCourseWithExerciseById(int id)
+        {
+            var courses = databaseContext.Courses
             .Include(c => c.Exercises)
+            .Include(c => c.User)
             .Select(c => new CourseInfoDTO
             {
-                Id = id,
+                Id = c.Id,
                 Name = c.Name,
                 Description = c.Description ?? null,
                 User = new DTO.UsersDTO.UserDTO
                 {
                     Id = c.User.Id,
                     Name = c.User.Name,
-                    Surname = c.User.Surname
-                }
-            });
-
-        public IEnumerable<CourseInfoDTO> GetCourseWithExerciseById(int id)
-        {
-
-            List<InfoExerciseDTO> tempExercise = databaseContext.Exercise
-                .Where(e => e.CourseId == id)
-                .Select(e => new InfoExerciseDTO
+                    Surname = c.User.Surname,
+                    Username = c.User.Username
+                },
+                Students = c.Enrollments.Where(e => e.AdminDecision || e.UserDecision).Select(e => new CourseStudentDto
                 {
-                    CourseId = e.CourseId,
+                    Id = e.User.Id,
+                    Name = e.User.Name,
+                    Surname = e.User.Surname,
+                    Username = e.User.Username,
+                    AdminDecision = e.AdminDecision,
+                    UserDecision = e.UserDecision,
+
+                }).ToList(),
+                Exercises = c.Exercises.Select(e => new InfoExerciseDTO
+                {
                     ExerciseId = e.Id,
                     ExerciseName = e.ExerciseName,
                     ExerciseDescription = e.ExerciseDescription,
                     DeadLine = e.DeadLine,
                     FileUpload = null,
-                }).ToList();
+                }).ToList()
+            }).FirstOrDefault(c => c.Id == id);
 
-            var courses = databaseContext.Courses
-            .Where(c => c.Id == id)
-            .Include(c => c.Exercises)
-            .Select(c => new CourseInfoDTO
-            {
-                Id = id,
-                Name = c.Name,
-                Description = c.Description ?? null,
-                User = new DTO.UsersDTO.UserDTO
-                {
-                    Id = c.User.Id,
-                    Name = c.User.Name,
-                    Surname = c.User.Surname
-                },
-                Exercises = tempExercise
-            });
             return courses;
         }
-            
 
-        public async void CreateCourse(CourseDTO course,int userId)
+
+        public async void CreateCourse(CourseDTO course, int userId)
         {
-            Course newCourse = new Course(course.Name, userId, course.Description);
+            var newCourse = new Course(course.Name, userId, course.Description);
             databaseContext.Courses.Add(newCourse);
+
+
             databaseContext.SaveChanges();
+
+            var enrollment = new Enrollment(userId, newCourse.Id, true, true);
+            databaseContext.Enrollments.Add(enrollment);
+
+            databaseContext.SaveChanges();
+
+            Console.Write($"{enrollment.Id} {enrollment.UserId} {enrollment.CourseId} {enrollment.UserDecision} {enrollment.AdminDecision} {course.Id}");
         }
 
         public async void DeleteCourseAsync(int id)

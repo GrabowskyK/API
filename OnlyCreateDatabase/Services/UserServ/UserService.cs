@@ -45,7 +45,7 @@ namespace OnlyCreateDatabase.Services.UserServ
                 databaseContext.SaveChanges();
                 return true;
             }
-            
+
         }
 
         public User VerifyLogin(UserLoginDTO user)
@@ -121,24 +121,24 @@ namespace OnlyCreateDatabase.Services.UserServ
                 new Course("Polski II", 0, "Wstęp do chemii dla semestru II"),
                 new Course("Podstawy matowania", 0, ""),
             };
-            
 
-            
+
+
             //databaseContext.Users.AddRange(users);
-           // databaseContext.SaveChanges();
+            // databaseContext.SaveChanges();
             var users1 = databaseContext.Users.Where(u => u.Role == User.Roles.Teacher).ToList();
             int i = 0;
-            foreach(var course in courses)
+            foreach (var course in courses)
             {
-                if(i % 3 == 0)
+                if (i % 3 == 0)
                 {
                     course.UserId = users1[0].Id;
                 }
-                else if(i % 3 == 1)
+                else if (i % 3 == 1)
                 {
                     course.UserId = users1[1].Id;
                 }
-                else if(i % 3 == 2)
+                else if (i % 3 == 2)
                 {
                     course.UserId = users1[2].Id;
                 }
@@ -196,6 +196,6 @@ namespace OnlyCreateDatabase.Services.UserServ
             databaseContext.Enrollments.AddRange(enrolls);
             databaseContext.SaveChanges();
         }
-        }
     }
+}
 

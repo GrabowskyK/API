@@ -11,18 +11,20 @@ using OnlyCreateDatabase.Services.FileUploadServ;
 using OnlyCreateDatabase.Services.UserServ;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<CourseService, CourseService>();
+builder.Services.AddScoped<EnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
@@ -41,6 +43,7 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -50,6 +53,14 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
                 builder.Configuration.GetSection("AppSettings:Token").Value!))
     };
 });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("TeacherPolicy", policy => policy.RequireRole("Teacher"));
+    options.AddPolicy("StudentPolicy", policy => policy.RequireRole("Student"));
+});
+
+
 builder.Services.AddCors();
 builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -63,7 +74,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:8080"));
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("*"));
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 

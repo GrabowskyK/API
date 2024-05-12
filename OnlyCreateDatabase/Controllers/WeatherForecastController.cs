@@ -12,8 +12,8 @@ namespace OnlyCreateDatabase.Controllers
     {
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IUserService userService;
-        private readonly ICourseService courseService;
-        private readonly IEnrollmentService enrollmentService;
+        private readonly CourseService courseService;
+        private readonly EnrollmentService enrollmentService;
         private readonly IExerciseService exerciseService;
 
 
@@ -28,19 +28,19 @@ namespace OnlyCreateDatabase.Controllers
         {
             if (file != null && file.Length > 0)
             {
-                // Okreœl folder docelowy, w którym chcesz zapisaæ plik
+                // Okreï¿½l folder docelowy, w ktï¿½rym chcesz zapisaï¿½ plik
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
 
-                // Jeœli folder docelowy nie istnieje, utwórz go
+                // Jeï¿½li folder docelowy nie istnieje, utwï¿½rz go
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // Generuj unikaln¹ nazwê pliku (np. za pomoc¹ GUID)
+                // Generuj unikalnï¿½ nazwï¿½ pliku (np. za pomocï¿½ GUID)
                 var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
 
-                // Utwórz pe³n¹ œcie¿kê do zapisu pliku
+                // Utwï¿½rz peï¿½nï¿½ ï¿½cieï¿½kï¿½ do zapisu pliku
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 // Zapisz plik na serwerze
@@ -49,7 +49,7 @@ namespace OnlyCreateDatabase.Controllers
                     file.CopyTo(stream);
                 }
 
-                return Ok("Plik zosta³ przes³any i zapisany pomyœlnie.");
+                return Ok("Plik zostaï¿½ przesï¿½any i zapisany pomyï¿½lnie.");
             }
             else
             {
