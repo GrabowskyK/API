@@ -18,13 +18,12 @@ namespace OnlyCreateDatabase.Controllers
         }
 
         [HttpGet("AllUsers")]
-        public IActionResult AllUsers() 
+        public ActionResult<UserDTO[]> AllUsers()
         {
-            var model = userService.GetUsers().ToList();
-            return Ok(model);
+            return Ok(userService.GetUsers().ToList());
         }
 
-        
+
 
         [HttpPost("Register")]
         public IActionResult Register(RegisterDTO register)

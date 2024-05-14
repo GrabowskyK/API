@@ -45,13 +45,12 @@ namespace OnlyCreateDatabase.Controllers
         [HttpGet("{courseId}")]
         public ActionResult<CourseInfoDTO> GetCourse([FromRoute] int courseId)
         {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (!courseService.UserEnrolled(int.Parse(userId), courseId)) return BadRequest("You are not enrolled in course!");
 
             var model = courseService.GetCourseWithExerciseById(courseId);
-            Console.WriteLine(courseId);
-            if (model == null)
-            {
-                return NotFound();
-            }
+
+            if (model == null) return NotFound();
 
             return Ok(model);
         }

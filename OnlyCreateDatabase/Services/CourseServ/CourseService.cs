@@ -32,7 +32,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
 
             if (type == AllCourseType.User)
             {
-                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId));
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId && e.UserDecision && e.AdminDecision));
             }
 
             if (type == AllCourseType.InvitedTo)
@@ -51,14 +51,14 @@ namespace OnlyCreateDatabase.Services.CourseServ
             }
 
             return query
-
            .Include(c => c.User).Select(c => new CourseListItemDTO
            {
                Id = c.Id,
                Name = c.Name,
                Description = c.Description,
-               Enrolled = c.Enrollments.Any(e => e.UserId == userId),
-               InvitedTo = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision == false),
+               Enrolled = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision && !e.AdminDecision),
+               InvitedTo = c.Enrollments.Any(e => e.UserId == userId && e.AdminDecision && !e.UserDecision),
+               InCourse = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision && e.AdminDecision),
                User = new DTO.UsersDTO.UserDTO
                {
                    Id = c.User.Id,
@@ -162,8 +162,6 @@ namespace OnlyCreateDatabase.Services.CourseServ
             databaseContext.Enrollments.Add(enrollment);
 
             databaseContext.SaveChanges();
-
-            Console.Write($"{enrollment.Id} {enrollment.UserId} {enrollment.CourseId} {enrollment.UserDecision} {enrollment.AdminDecision} {course.Id}");
         }
 
         public async void DeleteCourseAsync(int id)
@@ -203,9 +201,10 @@ namespace OnlyCreateDatabase.Services.CourseServ
             return databaseContext.Courses.Any(c => c.UserId == userId && c.Id == courseId);
         }
 
-        public void CourseExmapleData()
-        {
 
+        public bool UserEnrolled(int userId, int courseId)
+        {
+            return databaseContext.Enrollments.First(e => e.UserId == userId && e.CourseId == courseId && e.AdminDecision && e.UserDecision) != null;
         }
     }
 }

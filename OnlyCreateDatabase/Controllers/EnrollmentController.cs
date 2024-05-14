@@ -49,7 +49,7 @@ namespace OnlyCreateDatabase.Controllers
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (teacherId != null && !courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId)) return Forbid("You not owner of this course!");
-            if (enrollmentService.IsAlreadyInCourse(userId, courseId)) return BadRequest("User jest już zapisany!");
+            if (enrollmentService.IsAlreadyInCourse(userId, courseId)) return BadRequest("User is already Invited to course!");
 
             return Ok(enrollmentService.CreateEnrollment(userId, courseId, true));
 
@@ -60,7 +60,7 @@ namespace OnlyCreateDatabase.Controllers
         public ActionResult JoinToCourse([FromRoute] int courseId)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (enrollmentService.IsAlreadyInCourse(int.Parse(userId), courseId)) return BadRequest("User jest już zapisany!");
+            if (enrollmentService.IsAlreadyInCourse(int.Parse(userId), courseId)) return BadRequest("You are already enrolled to course!");
 
             enrollmentService.CreateEnrollment(int.Parse(userId), courseId, false);
             return Ok();
