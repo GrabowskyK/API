@@ -70,7 +70,7 @@ namespace OnlyCreateDatabase.Controllers
             var teacherId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (teacherId != null && !courseService.IsUserOwnerCourse(int.Parse(teacherId), courseId)) return Forbid("You not owner of this course!");
-            if (!enrollmentService.IsAlreadyInCourse(userId, courseId)) return BadRequest("User jest już zapisany!");
+            if (enrollmentService.IsAlreadyInCourse(userId, courseId)) return BadRequest("User jest już zapisany!");
 
             return Ok(enrollmentService.CreateEnrollment(userId, courseId, true));
 
