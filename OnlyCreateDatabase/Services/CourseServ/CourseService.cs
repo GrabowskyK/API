@@ -14,7 +14,8 @@ namespace OnlyCreateDatabase.Services.CourseServ
         {
             All,
             User,
-            InvitedTo
+            InvitedTo,
+            NotUser
         }
         private readonly DatabaseContext databaseContext;
         private readonly IConfiguration configuration;
@@ -36,7 +37,12 @@ namespace OnlyCreateDatabase.Services.CourseServ
 
             if (type == AllCourseType.InvitedTo)
             {
-                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId) && c.Enrollments.Any(e => e.UserDecision == false));
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId && !e.UserDecision));
+            }
+
+            if (type == AllCourseType.NotUser)
+            {
+                query = query.Where(c => !c.Enrollments.Any(e => e.UserId == userId));
             }
 
             if (query == null)

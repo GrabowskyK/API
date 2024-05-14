@@ -18,14 +18,8 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
             configuration = _configuration;
         }
 
-        public void JoinCourse(int userId, int courseId)
-        {
-            var enrollment = new Enrollment(userId, courseId);
-            databaseContext.Enrollments.Add(enrollment);
-            databaseContext.SaveChanges();
-        }
 
-        public int? CreateEnrollment(int userId, int courseId, bool isInvite)
+        public Enrollment? CreateEnrollment(int userId, int courseId, bool isInvite)
         {
             var foundEnrollment = databaseContext.Enrollments.FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId);
             if (foundEnrollment != null) return null;
@@ -46,7 +40,7 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
             databaseContext.SaveChanges();
             // Console.WriteLine(enrollment.User.Surname);
 
-            return enrollment.Id;
+            return enrollment;
 
         }
         public void RemoveEnrollment(int courseId, int userId)

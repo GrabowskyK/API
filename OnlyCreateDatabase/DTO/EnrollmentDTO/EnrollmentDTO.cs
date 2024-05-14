@@ -14,4 +14,10 @@ namespace OnlyCreateDatabase.DTO.EnrollmentDTO
             Course = course;
         }
     }
+
+    public class CreateEnrollmentRequestDTO
+    {
+        public int? UserId { get; set; }
+        public int CourseId { get; set; }
+    }
 }
