@@ -65,7 +65,7 @@ namespace OnlyCreateDatabase.Controllers
             enrollmentService.CreateEnrollment(int.Parse(userId), courseId, false);
             return Ok();
         }
-
+        // User odrzuca zaproszenie
         [HttpDelete("{courseId}/decline")]
         public ActionResult DeclineLeaveCourse([FromRoute] int courseId)
         {

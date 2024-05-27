@@ -14,7 +14,7 @@ namespace OnlyCreateDatabase.Controllers
         private readonly IUserService userService;
         private readonly CourseService courseService;
         private readonly EnrollmentService enrollmentService;
-        private readonly IExerciseService exerciseService;
+        private readonly ExerciseService exerciseService;
 
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger, IUserService _userService)

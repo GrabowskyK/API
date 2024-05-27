@@ -13,20 +13,32 @@ using System.Security.Claims;
 namespace OnlyCreateDatabase.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("exercise")]
     public class ExerciseController : Controller
     {
         private readonly DatabaseContext databaseContext;
         private readonly ILogger<ExerciseController> _logger;
-        private readonly IExerciseService exerciseService;
+        private readonly ExerciseService exerciseService;
         private readonly CourseService courseService;
         private readonly IFileUploadService fileUploadService;
-        public ExerciseController(ILogger<ExerciseController> logger, IExerciseService _exerciseService, CourseService _courseService, IFileUploadService _fileUploadService)
+        public ExerciseController(ILogger<ExerciseController> logger, ExerciseService _exerciseService, CourseService _courseService, IFileUploadService _fileUploadService)
         {
             _logger = logger;
             exerciseService = _exerciseService;
             courseService = _courseService;
             fileUploadService = _fileUploadService;
+        }
+
+
+        [HttpPost("")]
+        public ActionResult<ExerciseDTO> CreateExercise(CreateExerciseDTO exercise)
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (!courseService.IsUserOwnerCourse(int.Parse(userId), exercise.CourseId)) return BadRequest("You are not owner of this course!");
+
+            var newExercise = exerciseService.AddExercise(exercise);
+
+            return Ok(newExercise);
         }
 
 
@@ -39,7 +51,7 @@ namespace OnlyCreateDatabase.Controllers
         }
 
         [HttpGet("{exerciseId}")]
-        public IActionResult GetExercise([FromRoute] int exerciseId)
+        public ActionResult<ExerciseDTO> GetExercise([FromRoute] int exerciseId)
         {
             var model = exerciseService.GetExerciseById(exerciseId);
             return Ok(model);
@@ -67,28 +79,28 @@ namespace OnlyCreateDatabase.Controllers
             }
         }
 
-        [HttpPost("AddExercise")]
-        public async Task<IActionResult> AddExerciseAsync(ExerciseDTO exercise)
-        {
-            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (courseService.IsUserOwnerCourse(int.Parse(userId), exercise.CourseId))
-            {
-                if (exercise.File != null)
-                {
-                    FileUpload file = await fileUploadService.SaveFileAsync(exercise.File);
-                    exerciseService.AddExercise(exercise, file);
-                }
-                else
-                {
-                    exerciseService.AddExercise(exercise, null);
-                }
-                return Ok("Exercise added");
-            }
-            else
-            {
-                return BadRequest("You are not owner of this course!");
-            }
-        }
+        // [HttpPost("AddExercise")]
+        // public async Task<IActionResult> AddExerciseAsync(ExerciseDTO exercise)
+        // {
+        //     // var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        //     // if (courseService.IsUserOwnerCourse(int.Parse(userId), exercise.CourseId))
+        //     // {
+        //     //     if (exercise.File != null)
+        //     //     {
+        //     //         FileUpload file = await fileUploadService.SaveFileAsync(exercise.File);
+        //     //         exerciseService.AddExercise(exercise);
+        //     //     }
+        //     //     else
+        //     //     {
+        //     //         exerciseService.AddExercise(exercise);
+        //     //     }
+        //     //     return Ok("Exercise added");
+        //     // }
+        //     // else
+        //     // {
+        //     //     return BadRequest("You are not owner of this course!");
+        //     // }
+        // }
 
         [HttpPatch("{exerciseId}/AddFileToExercise")]
         public async Task<IActionResult> AddFileToExerciseAsync([FromRoute] int exerciseId, IFormFile file)

@@ -6,7 +6,7 @@ using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.ExerciseServ
 {
-    public class ExerciseService : IExerciseService
+    public class ExerciseService
     {
         private readonly DatabaseContext databaseContext;
         private readonly IConfiguration configuration;
@@ -21,7 +21,7 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
             .Include(e => e.FileUpload)
             .Select(e => new InfoExerciseDTO
             {
-                CourseId = (int) e.CourseId,
+                CourseId = (int)e.CourseId,
                 ExerciseId = e.Id,
                 ExerciseName = e.ExerciseName,
                 DeadLine = e.DeadLine,
@@ -40,7 +40,7 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
                 .Include(e => e.FileUpload)
                 .Select(e => new InfoExerciseDTO
                 {
-                    CourseId = (int) e.CourseId,
+                    CourseId = (int)e.CourseId,
                     ExerciseId = e.Id,
                     ExerciseName = e.ExerciseName,
                     DeadLine = e.DeadLine,
@@ -52,29 +52,35 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
                     }
                 })
                 .FirstOrDefault();
-                
 
-        public void AddExercise(ExerciseDTO exercise, FileUpload file)
+
+        public ExerciseDTO AddExercise(CreateExerciseDTO exercise)
         {
 
             Exercise newExercise = new Exercise(exercise.CourseId, exercise.ExerciseName, exercise.DeadLine, exercise.ExerciseDescription);
-            if(file != null)
-            {
-                newExercise.FileUpload = file;
-            }
+
             databaseContext.Exercise.Add(newExercise);
             databaseContext.SaveChanges();
+
+            return new ExerciseDTO
+            {
+                CourseId = newExercise.CourseId,
+                Id = newExercise.Id,
+                ExerciseName = newExercise.ExerciseName,
+                DeadLine = newExercise.DeadLine,
+                ExerciseDescription = newExercise.ExerciseDescription
+            };
         }
 
         public void DeleteExercise(int exerciseId)
         {
             Exercise exercise = databaseContext.Exercise
                 .FirstOrDefault(e => e.Id == exerciseId)!;
-            if(exercise.FileUploadId != null)
+            if (exercise.FileUploadId != null)
             {
                 FileUpload file = databaseContext.Files.FirstOrDefault(f => exercise.FileUploadId == f.Id)!;
                 databaseContext.Files.Remove(file!);
-                
+
             }
             databaseContext.Exercise.Remove(exercise!);
             databaseContext.SaveChanges();
@@ -91,15 +97,15 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
         public async Task EditExercise(int exerciseId, EditExerciseDTO oldExercise)
         {
             var exercise = await databaseContext.Exercise.FindAsync(exerciseId);
-            if(oldExercise.ExerciseName != null && oldExercise.ExerciseName != "")
+            if (oldExercise.ExerciseName != null && oldExercise.ExerciseName != "")
             {
                 exercise.ExerciseName = oldExercise.ExerciseName;
             }
-            if(oldExercise.ExerciseDescription != null && oldExercise.ExerciseDescription != "")
+            if (oldExercise.ExerciseDescription != null && oldExercise.ExerciseDescription != "")
             {
                 exercise.ExerciseDescription = oldExercise.ExerciseDescription;
             }
-            if(oldExercise.DeadLine != null && oldExercise.DeadLine != "")
+            if (oldExercise.DeadLine != null && oldExercise.DeadLine != "")
             {
                 exercise.DeadLine = oldExercise.DeadLine;
             }
