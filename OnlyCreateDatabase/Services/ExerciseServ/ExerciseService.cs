@@ -35,20 +35,25 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
 
 
 
-        public InfoExerciseDTO? GetExerciseById(int exerciseId) => databaseContext.Exercise
+        public GradedExerciseDTO? GetExerciseById(int exerciseId) => databaseContext.Exercise
                 .Where(e => e.Id == exerciseId)
                 .Include(e => e.FileUpload)
-                .Select(e => new InfoExerciseDTO
+                .Select(e => new GradedExerciseDTO
                 {
                     CourseId = (int)e.CourseId,
-                    ExerciseId = e.Id,
+                    Id = e.Id,
                     ExerciseName = e.ExerciseName,
                     DeadLine = e.DeadLine,
                     ExerciseDescription = e.ExerciseDescription,
-                    FileUpload = e.FileUpload == null ? null : new InfoFileDTO
+                    Grade = new GradeDTO
                     {
-                        Id = e.FileUpload.Id,
-                        FileName = e.FileUpload.FileName
+                        // TODO PROSZE 
+                        ExerciseId = e.Id,
+                        GradePercentage = 2,
+                        PostDate = DateTime.Now,
+                        StudentComment = "Student comment",
+                        TeacherComment = "Teacher comment",
+                        UserId = 1,
                     }
                 })
                 .FirstOrDefault();
