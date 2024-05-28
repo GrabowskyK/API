@@ -150,7 +150,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
         }
 
 
-        public async void CreateCourse(CourseDTO course, int userId)
+        public int CreateCourse(CourseDTO course, int userId)
         {
             var newCourse = new Course(course.Name, userId, course.Description);
             databaseContext.Courses.Add(newCourse);
@@ -162,6 +162,8 @@ namespace OnlyCreateDatabase.Services.CourseServ
             databaseContext.Enrollments.Add(enrollment);
 
             databaseContext.SaveChanges();
+
+            return newCourse.Id;
         }
 
         public async void DeleteCourseAsync(int id)
