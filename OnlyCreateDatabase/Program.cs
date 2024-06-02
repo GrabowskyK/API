@@ -25,11 +25,15 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<CourseService, CourseService>();
 builder.Services.AddScoped<EnrollmentService, EnrollmentService>();
+<<<<<<< HEAD
 builder.Services.AddScoped<GradeService, GradeService>();
 builder.Services.AddScoped<FileUploadService, FileUploadService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+=======
+builder.Services.AddScoped<ExerciseService, ExerciseService>();
+>>>>>>> 368f421727a5ccf9043c3168a21c89744671e07f
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 builder.Services.AddSwaggerGen(c =>

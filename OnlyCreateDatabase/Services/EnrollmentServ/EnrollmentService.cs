@@ -46,7 +46,7 @@ namespace OnlyCreateDatabase.Services.EnrollmentServ
         public void RemoveEnrollment(int courseId, int userId)
         {
             var enrollment = databaseContext.Enrollments.FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId);
-            if (enrollment.UserId == userId) return;
+
             if (enrollment != null)
             {
                 databaseContext.Enrollments.Remove(enrollment);

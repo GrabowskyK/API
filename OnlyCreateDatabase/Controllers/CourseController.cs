@@ -56,14 +56,14 @@ namespace OnlyCreateDatabase.Controllers
         }
 
         [HttpPost("")]
-        public IActionResult CreateCoruse(CourseDTO course)
+        public ActionResult<int> CreateCoruse(CourseDTO course)
         {
             var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (role == "Teacher")
             {
-                courseService.CreateCourse(course, Int32.Parse(userId));
-                return Ok();
+                var id = courseService.CreateCourse(course, Int32.Parse(userId));
+                return Ok(id);
             }
             else
             {

@@ -37,7 +37,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
 
             if (type == AllCourseType.InvitedTo)
             {
-                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId && !e.UserDecision));
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId && !e.UserDecision && e.AdminDecision));
             }
 
             if (type == AllCourseType.NotUser)
@@ -56,9 +56,9 @@ namespace OnlyCreateDatabase.Services.CourseServ
                Id = c.Id,
                Name = c.Name,
                Description = c.Description,
-               Enrolled = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision && !e.AdminDecision),
-               InvitedTo = c.Enrollments.Any(e => e.UserId == userId && e.AdminDecision && !e.UserDecision),
-               InCourse = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision && e.AdminDecision),
+               UserDecision = c.Enrollments.Any(e => e.UserId == userId && e.UserDecision),
+               AdminDecision = c.Enrollments.Any(e => e.UserId == userId && e.AdminDecision),
+
                User = new DTO.UsersDTO.UserDTO
                {
                    Id = c.User.Id,
@@ -150,7 +150,7 @@ namespace OnlyCreateDatabase.Services.CourseServ
         }
 
 
-        public async void CreateCourse(CourseDTO course, int userId)
+        public int CreateCourse(CourseDTO course, int userId)
         {
             var newCourse = new Course(course.Name, userId, course.Description);
             databaseContext.Courses.Add(newCourse);
@@ -162,6 +162,8 @@ namespace OnlyCreateDatabase.Services.CourseServ
             databaseContext.Enrollments.Add(enrollment);
 
             databaseContext.SaveChanges();
+
+            return newCourse.Id;
         }
 
         public async void DeleteCourseAsync(int id)
