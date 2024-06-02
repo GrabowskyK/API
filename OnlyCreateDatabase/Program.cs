@@ -8,6 +8,7 @@ using OnlyCreateDatabase.Services.CourseServ;
 using OnlyCreateDatabase.Services.EnrollmentServ;
 using OnlyCreateDatabase.Services.ExerciseServ;
 using OnlyCreateDatabase.Services.FileUploadServ;
+using OnlyCreateDatabase.Services.GradeServ;
 using OnlyCreateDatabase.Services.UserServ;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -21,38 +22,63 @@ builder.Services.AddControllers().AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<CourseService, CourseService>();
 builder.Services.AddScoped<EnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<GradeService, GradeService>();
+builder.Services.AddScoped<FileUploadService, FileUploadService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Moje API", Version = "v1" });
+
+    // Konfiguracja autoryzacji JWT w Swaggerze
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header,
+        Description = (builder.Configuration.GetSection("AppSettings:Token").Value),
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
+        In = ParameterLocation.Header,
+        //Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "bearer"
     });
 
-    options.OperationFilter<SecurityRequirementsOperationFilter>();
-});
 
-
-builder.Services.AddAuthentication().AddJwtBearer(options =>
-{
-
-    options.TokenValidationParameters = new TokenValidationParameters
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        ValidateIssuerSigningKey = true,
-        ValidateAudience = false,
-        ValidateIssuer = false,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration.GetSection("AppSettings:Token").Value!))
-    };
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+            .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+        };
+    }
+
+    );
 
 builder.Services.AddAuthorization(options =>
 {
@@ -78,8 +104,9 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("*"));
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.MapControllers();
 

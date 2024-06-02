@@ -10,10 +10,18 @@ namespace OnlyCreateDatabase.Model
         public int ExerciseId { get; set; }
         public Exercise Exercise { get; set; }
         public string? Comment { get;set; }
-        public int? GradeProcentage { get; set; } //procentage
-        public DateTime PostDate { get; set; }
+        public int? GradeProcentage { get; set; } = null;
+        public DateTime PostDate { get; set; } = DateTime.Now;
         public bool IsRated { get; set; } = false;
         public int? FileUploadId { get; set;}
         public FileUpload FileUpload { get; set; }
+
+        public Grade(int userId,int exerciseId, int? fileUploadId, string? comment)
+        {
+            UserId = userId;
+            ExerciseId = exerciseId;
+            Comment = comment;
+            FileUploadId = fileUploadId;
+        }
     }
 }
