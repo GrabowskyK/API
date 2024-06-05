@@ -35,29 +35,90 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
 
 
 
-        public GradedExerciseDTO? GetExerciseById(int exerciseId) => databaseContext.Exercise
-                .Where(e => e.Id == exerciseId)
-                .Include(e => e.FileUpload)
-                .Select(e => new GradedExerciseDTO
+        public GradedExerciseDTO? GetExerciseById(int exerciseId, int userId) =>
+            (from e in databaseContext.Exercise
+                where e.Id == exerciseId
+                join g in databaseContext.Grades on e.Id equals g.ExerciseId into eg
+                from grade in eg.Where(g => g.UserId == userId).DefaultIfEmpty()
+                select new GradedExerciseDTO
                 {
-                    CourseId = (int)e.CourseId,
+                    CourseId = e.CourseId,
                     Id = e.Id,
                     ExerciseName = e.ExerciseName,
                     DeadLine = e.DeadLine,
                     ExerciseDescription = e.ExerciseDescription,
-                    Grade = new GradeDTO
+                    Grade = grade == null ? null : new GradeDTO
                     {
-                        // TODO PROSZE 
-                        ExerciseId = e.Id,
-                        GradePercentage = 2,
-                        PostDate = DateTime.Now,
-                        StudentComment = "Student comment",
-                        TeacherComment = "Teacher comment",
-                        UserId = 1,
+                        ExerciseId = grade.ExerciseId,
+                        GradePercentage = grade.GradeProcentage,
+                        PostDate = grade.PostDate,
+                        StudentComment = grade.Comment,
+                        TeacherComment = null,
+                        UserId = grade.UserId,
+                        FileUploadUrl = grade.FileUploadId
                     }
+                }).FirstOrDefault();
+
+        public TeacherGradedExerciseDTO? GetTeacherGradedExercise(int exerciseId)
+        {
+            return databaseContext.Exercise
+                .Where(e => e.Id == exerciseId)
+                .Include(e => e.Course) 
+                .Include(e => e.FileUpload)
+                .Select(e => new TeacherGradedExerciseDTO
+                {
+                    Id = e.Id,
+                    CourseId = e.CourseId,
+                    ExerciseName = e.ExerciseName,
+                    ExerciseDescription = e.ExerciseDescription,
+                    DeadLine = e.DeadLine,
+                    Grades = databaseContext.Grades
+                        .Where(g => g.ExerciseId == e.Id)
+                        .Select(g => new GradeDTO
+                        {
+                            UserId = g.UserId,
+                            ExerciseId = g.ExerciseId,
+                            StudentComment = g.Comment,
+                            TeacherComment = null, // Assuming TeacherComment is not present in the Grade entity
+                            GradePercentage = g.GradeProcentage,
+                            PostDate = g.PostDate,
+                            FileUploadUrl = g.FileUploadId
+                        })
+                        .ToList()
                 })
                 .FirstOrDefault();
+        }
 
+        public void UpsertGrade(int exerciseId, CreateGradeDTO createGradeDto)
+        {
+            var existingGrade = databaseContext.Grades
+                .FirstOrDefault(g => g.ExerciseId == exerciseId && g.UserId == createGradeDto.StudentId);
+
+            if (existingGrade != null)
+            {
+                existingGrade.Comment = createGradeDto.Comment;
+                existingGrade.GradeProcentage = createGradeDto.Grade;
+                existingGrade.PostDate = DateTime.Now;
+                existingGrade.IsRated = true;
+
+                databaseContext.Grades.Update(existingGrade);
+            }
+            else
+            {
+                // Insert a new grade
+                var newGrade = new Grade(createGradeDto.StudentId,exerciseId,null,createGradeDto.Comment)
+                {
+                    GradeProcentage = createGradeDto.Grade,
+                    PostDate = DateTime.Now,
+                    IsRated = true
+                };
+
+                databaseContext.Grades.Add(newGrade);
+            }
+
+            // Save changes to the database
+            databaseContext.SaveChanges();
+        }
 
         public ExerciseDTO AddExercise(CreateExerciseDTO exercise)
         {

@@ -41,21 +41,21 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(newExercise);
         }
 
-
-        // Dorzucić grade tu, ale tylko od usera który jest obecnie zalogowany
+        
         [HttpGet("{exerciseId}")]
         public ActionResult<GradedExerciseDTO> GetExercise([FromRoute] int exerciseId)
         {
-            var model = exerciseService.GetExerciseById(exerciseId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            var model = exerciseService.GetExerciseById(exerciseId,int.Parse(userId));
             return Ok(model);
         }
 
-        // Tutaj zwraca exercise ale rozrzeszone o grade wszystkich członków grupy
         [HttpGet("{exerciseId}/grades")]
         public ActionResult<TeacherGradedExerciseDTO> GetExerciseTeacher([FromRoute] int exerciseId)
         {
-            var model = exerciseService.GetExerciseById(exerciseId);
-            return Ok(model);
+            
+            return Ok(exerciseService.GetTeacherGradedExercise(exerciseId));
         }
 
 
@@ -67,8 +67,12 @@ namespace OnlyCreateDatabase.Controllers
         [HttpPost("{exerciseId}/grade")]
         public ActionResult<GradedExerciseDTO> GradeExercise([FromRoute] int exerciseId, CreateGradeDTO payload)
         {
-            // Zwraca exercise ale rozrzeszone o grade, który ma plik 
-            return Ok();
+            // Upsert the grade
+            exerciseService.UpsertGrade(exerciseId, payload);
+
+            var gradedExercise = exerciseService.GetExerciseById(exerciseId, payload.StudentId);
+
+            return Ok(gradedExercise);
         }
 
 

@@ -15,7 +15,7 @@ namespace OnlyCreateDatabase.Model
         public bool IsRated { get; set; } = false;
         public int? FileUploadId { get; set;}
         public FileUpload FileUpload { get; set; }
-
+        
         public Grade(int userId,int exerciseId, int? fileUploadId, string? comment)
         {
             UserId = userId;
