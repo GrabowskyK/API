@@ -15,7 +15,8 @@ namespace OnlyCreateDatabase.Services.CourseServ
             All,
             User,
             InvitedTo,
-            NotUser
+            NotUser,
+            Author,
         }
         private readonly DatabaseContext databaseContext;
         private readonly IConfiguration configuration;
@@ -45,6 +46,11 @@ namespace OnlyCreateDatabase.Services.CourseServ
                 query = query.Where(c => !c.Enrollments.Any(e => e.UserId == userId));
             }
 
+            if (type == AllCourseType.Author)
+            {
+                query = query.Where(c => c.User.Id == userId);
+            }
+
             if (query == null)
             {
                 return [];
@@ -63,7 +69,8 @@ namespace OnlyCreateDatabase.Services.CourseServ
                {
                    Id = c.User.Id,
                    Name = c.User.Name,
-                   Surname = c.User.Surname
+                   Surname = c.User.Surname,
+                   Username = c.User.Username
                },
            });
         }
