@@ -9,7 +9,7 @@ namespace OnlyCreateDatabase.DTO.ExercisesDTO
         public string? StudentComment { get; set; }
         public string? TeacherComment { get; set; }
         public int? GradePercentage { get; set; }
-        public DateTime PostDate { get; set; }
+        public DateTime? PostDate { get; set; }
         public int? FileUploadUrl { get; set; }
     }
 

@@ -2,6 +2,8 @@
 using OnlyCreateDatabase.Database;
 using OnlyCreateDatabase.DTO.ExercisesDTO;
 using OnlyCreateDatabase.DTO.FileUploadDTO;
+using OnlyCreateDatabase.DTO.GradesDTO;
+using OnlyCreateDatabase.DTO.UsersDTO;
 using OnlyCreateDatabase.Model;
 
 namespace OnlyCreateDatabase.Services.ExerciseServ
@@ -61,9 +63,57 @@ namespace OnlyCreateDatabase.Services.ExerciseServ
 
         public TeacherGradedExerciseDTO? GetTeacherGradedExercise(int exerciseId)
         {
+            //    var usersInCourse = databaseContext.Enrollments.Where(e => e.CourseId == 22 && e.AdminDecision == true && e.UserDecision == true)
+            //        .Include(g => g.User)
+            //        .Select(e => new UserDTO
+            //        {
+            //            Id = e.User.Id,
+            //            Name = e.User.Name,
+            //            Surname = e.User.Surname
+            //        });
+
+            //    var query = from user in usersInCourse
+            //                join grade in databaseContext.Grades.Where(g => g.ExerciseId == 17) on user.Id equals grade.UserId into userGrades
+            //                from userGrade in userGrades.DefaultIfEmpty()
+            //                select new TeacherGradedExerciseDTO
+            //                {
+            //                    Id = userGrade.Id,
+            //                    CourseId = userGrade.Exercise.CourseId,
+            //                    ExerciseName = userGrade.Exercise.ExerciseName,
+            //                    ExerciseDescription = userGrade.Exercise.ExerciseDescription,
+            //                    DeadLine = userGrade.Exercise.DeadLine,
+            //                    Grades = userGrade.Id != null ? new List<GradeDTO>
+            //                    {
+            //                        new GradeDTO
+            //                        {
+            //                            UserId = user.Id,
+            //                            ExerciseId = userGrade.ExerciseId,
+            //                            StudentComment = userGrade.Comment,
+            //                            TeacherComment = null,
+            //                            GradePercentage = userGrade.GradeProcentage,
+            //                            PostDate = userGrade.PostDate,
+            //                            FileUploadUrl = userGrade.FileUploadId != null ? userGrade.FileUploadId : null,
+            //                        }
+            //                    } : null
+
+            //};
+            //    return query.ToList();
+            //Grades = databaseContext.Grades
+            //    .Where(g => g.ExerciseId == e.Id)
+            //    .Select(g => new GradeDTO
+            //    {
+            //        UserId = g.UserId,
+            //        ExerciseId = g.ExerciseId,
+            //        StudentComment = g.Comment,
+            //        TeacherComment = null, // Assuming TeacherComment is not present in the Grade entity
+            //        GradePercentage = g.GradeProcentage,
+            //        PostDate = g.PostDate,
+            //        FileUploadUrl = g.FileUploadId
+            //    })
+
             return databaseContext.Exercise
                 .Where(e => e.Id == exerciseId)
-                .Include(e => e.Course) 
+                .Include(e => e.Course)
                 .Include(e => e.FileUpload)
                 .Select(e => new TeacherGradedExerciseDTO
                 {

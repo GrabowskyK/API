@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlyCreateDatabase.DTO.ExercisesDTO;
 using OnlyCreateDatabase.DTO.GradesDTO;
+using OnlyCreateDatabase.DTO.UsersDTO;
 using OnlyCreateDatabase.Model;
 using OnlyCreateDatabase.Services.CourseServ;
 using OnlyCreateDatabase.Services.FileUploadServ;
@@ -27,11 +29,17 @@ namespace OnlyCreateDatabase.Controllers
 
         }
 
+        //Dodawanie odpowiedzi do zadania przez usera
         [Authorize]
         [HttpPost("AddGrade/{exerciseId}")]
         public async Task<IActionResult> AddGradeAsync([FromRoute] int exerciseId, IFormFile? file = null, string? comment = null)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (gradeService.IsUserAddTask(int.Parse(userId), exerciseId) == true)
+            {
+                return BadRequest("User juz dodał zadanie do tego zadania.");
+            }
 
             if (file != null)
             {
@@ -42,10 +50,89 @@ namespace OnlyCreateDatabase.Controllers
             else
             {
                 gradeService.AddGrade(int.Parse(userId), exerciseId, fileId: null, comment: comment);
-                
+
             }
             return Ok();
 
+        }
+
+
+        //Userzy, którzy nie przesłali zadania, a należą do kursu
+        [HttpGet("UsersNotUploadTask")]
+        public ActionResult<UserDTO> UsersNotUploadTask(int courseId, int exerciseId)
+        {
+            var model = gradeService.UsersNotUploadTask(courseId, exerciseId);
+            return Ok(model);
+        }
+
+
+        //Przesłane odpowiedzi do zadania (ocenione i nieocenione)
+        [HttpGet("AllUsersInGrades")]
+        public ActionResult<TeacherGradedExerciseDTO> UsersInGrades(int courseId, int exerciseId)
+        {
+            var model = gradeService.UploadedTask(courseId, exerciseId);
+            return Ok(model);
+        }
+
+
+        //Zmiana oceny przez nauczyciela. 
+        [HttpPatch("UpdateGrade")]
+        public ActionResult<CreateGradeDTO> UpdateGrade(CreateGradeDTO grade)
+        {
+            gradeService.UpdateGrade(grade);
+            return Ok();
+        }
+
+        //Dodawanie ocen przez nauczyciela jeżeli chce się wystawić ocene "1" gdy ten nie przesłał zadania
+        [HttpPost("CreateGrade")]
+        public ActionResult<CreateGradeDTO> CreateGrade(CreateGradeDTO grade)
+        {
+            gradeService.CreateGradeWithoutUserUpload(grade);
+            return Ok();
+        }
+
+
+        //Zwraca oceny zalogowanego usera każdego zadania w danym kursie
+        [Authorize]
+        [HttpGet("GetUserGradesInCourse")]
+        public ActionResult<GradeDTO> UsersGrade(int courseId)
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return BadRequest("Musisz się pierw zalogować!");
+            }
+            var model = gradeService.UsersGrades(courseId, int.Parse(userId));
+
+            return Ok(model);
+        }
+
+        //User może usunąć zadanie, jeżeli ono jeszcze nie zostało ocenione
+        [Authorize]
+        [HttpDelete("DeleteUserTask")]
+        public async Task<IActionResult> DeleteUserTask(int exerciseId)
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (gradeService.DeleteTask(int.Parse(userId), exerciseId) == false)
+            {
+                return BadRequest("Zadanei zostało ocenione, więc nie możesz go zmienić!");
+            }
+            return Ok("Usunięto");
+        }
+
+
+        //Usuwa plik, który dodał user do swojego zadania
+        [HttpDelete("DeleteFileFromTask")]
+        public async Task<IActionResult> DeleteFile(int fileId)
+        {
+            if (gradeService.DeleteFile(fileId) == false)
+            {
+                return BadRequest("Zadanei zostało już ocenione!");
+            }
+            return Ok();
+            
         }
     }
 }
