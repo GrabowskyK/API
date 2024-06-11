@@ -31,7 +31,7 @@ namespace OnlyCreateDatabase.Controllers
 
         //Dodawanie odpowiedzi do zadania przez usera
         [Authorize]
-        [HttpPost("AddGrade/{exerciseId}")]
+        [HttpPost("AddTask/{exerciseId}")]
         public async Task<IActionResult> AddGradeAsync([FromRoute] int exerciseId, IFormFile? file = null, string? comment = null)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -67,7 +67,7 @@ namespace OnlyCreateDatabase.Controllers
 
 
         //Przesłane odpowiedzi do zadania (ocenione i nieocenione)
-        [HttpGet("AllUsersInGrades")]
+        [HttpGet("UsersUploadedTask")]
         public ActionResult<TeacherGradedExerciseDTO> UsersInGrades(int courseId, int exerciseId)
         {
             var model = gradeService.UploadedTask(courseId, exerciseId);
