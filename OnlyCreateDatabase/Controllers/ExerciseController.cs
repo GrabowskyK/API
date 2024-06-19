@@ -41,20 +41,20 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(newExercise);
         }
 
-        
+
         [HttpGet("{exerciseId}")]
         public ActionResult<GradedExerciseDTO> GetExercise([FromRoute] int exerciseId)
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var model = exerciseService.GetExerciseById(exerciseId,int.Parse(userId));
+            var model = exerciseService.GetExerciseById(exerciseId, int.Parse(userId));
             return Ok(model);
         }
 
         [HttpGet("{exerciseId}/grades")]
         public ActionResult<TeacherGradedExerciseDTO> GetExerciseTeacher([FromRoute] int exerciseId)
         {
-            
+
             return Ok(exerciseService.GetTeacherGradedExercise(exerciseId));
         }
 
@@ -77,14 +77,7 @@ namespace OnlyCreateDatabase.Controllers
 
 
 
-        // Upsert
-        // uzywtkonwik wysyła zadanie z plikiem, zapsiuje się w "grade" i zwraca "grade" z plikiem
-        // Zwraca to samo co [HttpGet("{exerciseId}")]
-        [HttpPost("{exerciseId}/upload")]
-        public async Task<ActionResult<GradedExerciseDTO>> UploadFile([FromRoute] int exerciseId, [FromForm] UploadDTO data)
-        {
-            return Ok();
-        }
+
 
         [HttpDelete("{exerciseId}")]
         public IActionResult DeleteExercise(int exerciseId)

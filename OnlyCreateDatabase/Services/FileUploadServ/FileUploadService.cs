@@ -19,6 +19,8 @@ namespace OnlyCreateDatabase.Services.FileUploadServ
             .Where(f => f.Id == fileId)
             .SingleOrDefault();
 
+
+
         public async Task<FileUpload> SaveFileAsync(IFormFile File)
         {
             string extention = Path.GetExtension(File.FileName);
@@ -26,7 +28,7 @@ namespace OnlyCreateDatabase.Services.FileUploadServ
             string fileName = Guid.NewGuid().ToString() + extention;
             string path = Path.Combine(Directory.GetCurrentDirectory(), "UploadFiles");
             string fullPath = Path.Combine(path, fileName);
-            
+
             try
             {
                 FileUpload fileUpload = new FileUpload(File.FileName, fileName, fullPath);
@@ -44,7 +46,7 @@ namespace OnlyCreateDatabase.Services.FileUploadServ
             catch (Exception ex)
             {
                 return null;
-            }   
+            }
         }
 
         public void SaveFileInDatabase(FileUpload fileUpload)

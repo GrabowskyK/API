@@ -32,8 +32,12 @@ namespace OnlyCreateDatabase.Controllers
         //Dodawanie odpowiedzi do zadania przez usera
         [Authorize]
         [HttpPost("AddTask/{exerciseId}")]
-        public async Task<IActionResult> AddGradeAsync([FromRoute] int exerciseId, IFormFile? file = null, string? comment = null)
+        public async Task<IActionResult> AddGradeAsync([FromRoute] int exerciseId, IFormFile? file = null, [FromForm] string? comment = null)
         {
+            // print comment her e
+            Console.WriteLine($"comment {comment} ");
+
+
             var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (gradeService.IsUserAddTask(int.Parse(userId), exerciseId) == true)
@@ -65,6 +69,14 @@ namespace OnlyCreateDatabase.Controllers
             return Ok(model);
         }
 
+
+        [HttpGet("file/{fileId}")]
+        public ActionResult UsersInGrades(int fileId)
+        {
+            var model = fileUploadService.GetFile(fileId);
+
+            return File(model.FileBlob, "application/octet-stream", model.FileName);
+        }
 
         //Przesłane odpowiedzi do zadania (ocenione i nieocenione)
         [HttpGet("UsersUploadedTask")]
@@ -132,7 +144,7 @@ namespace OnlyCreateDatabase.Controllers
                 return BadRequest("Zadanei zostało już ocenione!");
             }
             return Ok();
-            
+
         }
     }
 }

@@ -1,5 +1,9 @@
 ﻿namespace OnlyCreateDatabase.DTO.GradesDTO
 {
+    public class UploadFileDTO
+    {
+        public string Comment { get; set; }
+    }
     public class GradePostDTO
     {
         public int UserId { get; set; }
@@ -15,4 +19,5 @@
             Comment = comment;
         }
     }
+
 }
